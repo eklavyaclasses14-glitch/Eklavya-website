@@ -1,0 +1,33 @@
+.admin-form-card {
+  max-width: 600px;
+}
+
+.admin-form-header-btn {
+  padding: 0.5rem;
+  border-radius: 50%;
+}
+
+.admin-upload-dropzone {
+  padding: 1.5rem;
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-background);
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+.admin-upload-icon {
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 0.5rem;
+  opacity: 0.5;
+}
+
+.admin-form-hr {
+  border-color: var(--color-border);
+  border-top-width: 1px;
+}
+
+.admin-form-cancel-btn {
+  border-color: var(--color-border);
+}

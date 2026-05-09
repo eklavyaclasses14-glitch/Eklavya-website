@@ -1,0 +1,17 @@
+.admin-form-card {
+  max-width: 600px;
+}
+
+.admin-form-header-btn {
+  padding: 0.5rem;
+  border-radius: 50%;
+}
+
+.admin-form-hr {
+  border-color: var(--color-border);
+  border-top-width: 1px;
+}
+
+.admin-form-cancel-btn {
+  border-color: var(--color-border);
+}

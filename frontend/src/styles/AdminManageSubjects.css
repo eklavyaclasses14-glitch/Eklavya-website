@@ -1,0 +1,480 @@
+/* ===================================================
+   Admin Manage Subjects Page
+   =================================================== */
+
+/* ── Page header ── */
+.ams-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.75rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.ams-page-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-text);
+  line-height: 1.2;
+}
+
+.ams-page-sub {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin-top: 0.25rem;
+}
+
+.ams-add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.25rem;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+  color: white;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(74, 92, 106, 0.3);
+  white-space: nowrap;
+}
+
+.ams-add-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(74, 92, 106, 0.4);
+}
+
+/* ── Layout ── */
+.ams-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (min-width: 960px) {
+  .ams-layout {
+    grid-template-columns: 1fr 340px;
+  }
+}
+
+/* ── Subjects table card ── */
+.ams-table-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.ams-table-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.ams-table-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ams-search-wrap {
+  position: relative;
+  flex: 1;
+  max-width: 280px;
+  min-width: 160px;
+}
+
+.ams-search-icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.ams-search-input {
+  width: 100%;
+  padding: 0.55rem 0.875rem 0.55rem 2.25rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 0.8125rem;
+  background: var(--color-background);
+  color: var(--color-text);
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.18s ease;
+}
+
+.ams-search-input:focus {
+  border-color: var(--color-primary);
+  background: var(--color-surface);
+}
+
+/* ── Department filter tabs ── */
+.ams-dept-tabs {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+  overflow-x: auto;
+}
+
+.ams-dept-tab {
+  padding: 0.35rem 0.875rem;
+  border-radius: 99px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.18s ease;
+  flex-shrink: 0;
+}
+
+.ams-dept-tab:hover {
+  border-color: var(--color-primary-hover);
+  color: var(--color-primary);
+}
+
+.ams-dept-tab.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+}
+
+/* ── Table rows ── */
+.ams-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 80px 80px;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+  transition: background 0.14s ease;
+}
+
+.ams-row:last-child {
+  border-bottom: none;
+}
+
+.ams-row:hover {
+  background: var(--color-secondary);
+}
+
+.ams-row-header {
+  background: var(--color-background);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+}
+
+.ams-row-header:hover {
+  background: var(--color-background);
+}
+
+.ams-subject-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.ams-subject-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.ams-subject-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.ams-dept-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 99px;
+  background: rgba(74, 92, 106, 0.08);
+  color: var(--color-primary);
+  white-space: nowrap;
+}
+
+.ams-sem-badge {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+.ams-delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  background: transparent;
+  transition: all 0.18s ease;
+  margin-left: auto;
+}
+
+.ams-delete-btn:hover {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #ef4444;
+}
+
+.ams-empty {
+  padding: 3rem 2rem;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+/* ── Add subject form card (right sidebar) ── */
+.ams-form-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  position: sticky;
+  top: 88px;
+}
+
+.ams-form-header {
+  padding: 1.1rem 1.375rem;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.ams-form-header-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ams-form-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.ams-form-body {
+  padding: 1.375rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.125rem;
+}
+
+.ams-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.ams-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.ams-required {
+  color: #ef4444;
+}
+
+.ams-input {
+  width: 100%;
+  padding: 0.7rem 0.875rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-family: inherit;
+  background: var(--color-background);
+  color: var(--color-text);
+  outline: none;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.ams-input:focus {
+  border-color: var(--color-primary);
+  background: var(--color-surface);
+  box-shadow: 0 0 0 3px rgba(74, 92, 106, 0.1);
+}
+
+.ams-input.error {
+  border-color: #ef4444;
+}
+
+.ams-input-error {
+  font-size: 0.75rem;
+  color: #ef4444;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.ams-hint {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+/* Semester selector grid */
+.ams-sem-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+}
+
+.ams-sem-option {
+  position: relative;
+}
+
+.ams-sem-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.ams-sem-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.55rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.ams-sem-option input:checked + .ams-sem-label {
+  border-color: var(--color-primary);
+  background: rgba(74, 92, 106, 0.08);
+  color: var(--color-primary);
+}
+
+.ams-sem-label:hover {
+  border-color: var(--color-primary-hover);
+}
+
+.ams-form-submit-btn {
+  width: 100%;
+  padding: 0.75rem;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(74, 92, 106, 0.28);
+}
+
+.ams-form-submit-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(74, 92, 106, 0.38);
+}
+
+.ams-form-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Stats strip */
+.ams-stats-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.ams-stat-pill {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.25rem;
+  text-align: center;
+}
+
+.ams-stat-pill-value {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--color-text);
+  line-height: 1;
+}
+
+.ams-stat-pill-label {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-top: 0.25rem;
+  font-weight: 500;
+}
+
+/* Toast */
+.ams-toast {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  background: var(--color-text);
+  color: white;
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  z-index: 999;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Dot colors */
+.dot-indigo  { background: var(--color-primary); }
+.dot-sky     { background: var(--color-primary); }
+.dot-emerald { background: #10b981; }
+.dot-amber   { background: #f59e0b; }
+.dot-rose    { background: #f43f5e; }

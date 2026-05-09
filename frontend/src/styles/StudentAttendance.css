@@ -1,0 +1,167 @@
+/* ===================================================
+   Student Attendance Page
+   =================================================== */
+
+.sa-page-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.sa-header-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, #10b981, #34d399);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.sa-page-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--color-text);
+  line-height: 1.2;
+}
+
+.sa-page-sub {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  margin-top: 0.2rem;
+}
+
+/* ── Overall summary banner ── */
+.sa-summary-banner {
+  background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem 2rem;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 1.75rem;
+  flex-wrap: wrap;
+}
+
+.sa-summary-label {
+  font-size: 0.8rem;
+  opacity: 0.7;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.35rem;
+}
+
+.sa-summary-value {
+  font-size: 2.25rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.sa-summary-desc {
+  font-size: 0.8125rem;
+  opacity: 0.7;
+  margin-top: 0.25rem;
+}
+
+.sa-summary-ring {
+  width: 80px;
+  height: 80px;
+  flex-shrink: 0;
+}
+
+/* ── Cards grid ── */
+.sa-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1.25rem;
+}
+
+.sa-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.375rem 1.5rem;
+  transition: var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.sa-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.sa-card.danger {
+  border-color: rgba(239, 68, 68, 0.3);
+  background: #fff9f9;
+}
+
+.sa-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.sa-card-subject {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.3;
+  flex: 1;
+  padding-right: 0.5rem;
+}
+
+.sa-card-pct {
+  font-size: 1.5rem;
+  font-weight: 900;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+/* Progress bar */
+.sa-bar-track {
+  width: 100%;
+  height: 8px;
+  background: var(--color-border);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.sa-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.6s ease;
+}
+
+.sa-danger-msg {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #ef4444;
+  margin-top: 0.75rem;
+}
+
+/* Status pill */
+.sa-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.2rem 0.6rem;
+  border-radius: 99px;
+  margin-top: 0.625rem;
+}
+
+.sa-status-pill.safe   { background: rgba(16,185,129,0.1); color: #10b981; }
+.sa-status-pill.danger { background: rgba(239,68,68,0.1);  color: #ef4444; }
+.sa-status-pill.warn   { background: rgba(245,158,11,0.1); color: #f59e0b; }
