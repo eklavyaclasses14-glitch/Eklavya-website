@@ -5,10 +5,18 @@ import { ArrowLeft, UploadCloud, File, Image, CheckCircle2, AlertCircle, X } fro
 import { apiFetch } from '../utils/apiFetch';
 
 const DEPARTMENTS = [
-  'Computer Engineering',
-  'Mechanical Engineering',
+  'Automation & Robotics',
+  'Automobile Engineering',
   'Civil Engineering',
   'Electrical Engineering',
+  'Computer Engineering',
+  'Information Technology',
+  'Mechanical Engineering',
+  'Mechanical Engineering (CAD/CAM)',
+  'Information & Communication Technology',
+  'Metallurgy',
+  'Power Electronics',
+  'Architecture',
 ];
 
 export default function AdminUploadDocument() {
@@ -50,7 +58,7 @@ export default function AdminUploadDocument() {
     if (name === 'department' || name === 'semester') {
       const newSubjects = subjects.filter(
         s => s.department === (name === 'department' ? value : formData.department) &&
-             s.semester == (name === 'semester' ? value : formData.semester)
+          s.semester == (name === 'semester' ? value : formData.semester)
       );
       setFormData(prev => ({
         ...prev,
@@ -190,7 +198,7 @@ export default function AdminUploadDocument() {
               <div className="admin-field-group">
                 <label>Semester</label>
                 <select name="semester" className="admin-input" value={formData.semester} onChange={handleChange}>
-                  {[1,2,3,4,5,6,7,8].map(n => <option key={n}>{n}</option>)}
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map(n => <option key={n}>{n}</option>)}
                 </select>
               </div>
             </div>

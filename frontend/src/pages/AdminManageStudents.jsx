@@ -39,7 +39,7 @@ function DeleteConfirmModal({ title, onClose, onConfirm }) {
             <X size={18} />
           </button>
         </div>
-        
+
         <div className="ams-modal-body" style={{ padding: '1.5rem', paddingTop: '0.5rem' }}>
           <p style={{ color: 'var(--color-text-muted)', fontSize: '0.95rem', lineHeight: '1.5' }}>
             Are you sure you want to delete student <strong style={{ color: 'var(--color-text)' }}>"{title}"</strong>?
@@ -84,10 +84,18 @@ function DeleteConfirmModal({ title, onClose, onConfirm }) {
 }
 
 const DEPARTMENTS = [
-  "Computer Engineering",
-  "Mechanical Engineering",
-  "Civil Engineering",
-  "Electrical Engineering",
+  'Automation & Robotics',
+  'Automobile Engineering',
+  'Civil Engineering',
+  'Electrical Engineering',
+  'Computer Engineering',
+  'Information Technology',
+  'Mechanical Engineering',
+  'Mechanical Engineering (CAD/CAM)',
+  'Information & Communication Technology',
+  'Metallurgy',
+  'Power Electronics',
+  'Architecture',
 ];
 const FILTER_DEPARTMENTS = ["All", ...DEPARTMENTS];
 
@@ -96,6 +104,14 @@ const DEPT_SHORT = {
   "Mechanical Engineering": "MECH",
   "Civil Engineering": "CIVIL",
   "Electrical Engineering": "EEE",
+  "Automation & Robotics": "AUTO  & ROBOT",
+  "Automobile Engineering": "AUTO",
+  "Information Technology": "IT",
+  "Mechanical Engineering (CAD/CAM)": "MECH( CAD/CAM )",
+  "Information & Communication Technology": "ICT",
+  "Metallurgy": "MET",
+  "Power Electronics": "PE",
+  "Architecture": "ARCH"
 };
 
 // ── Validation ────────────────────────────────────────
@@ -741,7 +757,7 @@ export default function AdminManageStudents() {
           gap: '1rem', padding: '1.5rem', background: 'rgba(255,255,255,0.02)',
           borderTop: '1px solid rgba(255,255,255,0.05)', borderRadius: '0 0 12px 12px'
         }}>
-          <button 
+          <button
             disabled={currentPage === 1}
             onClick={() => setCurrentPage(prev => prev - 1)}
             style={{
@@ -756,7 +772,7 @@ export default function AdminManageStudents() {
           <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
             Page {currentPage} of {totalPages}
           </span>
-          <button 
+          <button
             disabled={currentPage === totalPages}
             onClick={() => setCurrentPage(prev => prev + 1)}
             style={{

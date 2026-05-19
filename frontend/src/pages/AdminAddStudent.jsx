@@ -6,10 +6,18 @@ import { apiFetch } from '../utils/apiFetch';
 import '../styles/AdminForms.css';
 
 const DEPARTMENTS = [
-  'Computer Engineering',
-  'Mechanical Engineering',
+  'Automation & Robotics',
+  'Automobile Engineering',
   'Civil Engineering',
   'Electrical Engineering',
+  'Computer Engineering',
+  'Information Technology',
+  'Mechanical Engineering',
+  'Mechanical Engineering (CAD/CAM)',
+  'Information & Communication Technology',
+  'Metallurgy',
+  'Power Electronics',
+  'Architecture',
 ];
 
 // ── Validation rules ──────────────────────────────
@@ -31,8 +39,8 @@ const VALIDATORS = {
     msg: 'Password must be at least 6 characters',
   },
   email: {
-  test: (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
-  msg: 'Enter a valid email address',
+    test: (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
+    msg: 'Enter a valid email address',
   },
 };
 
@@ -42,15 +50,15 @@ export default function AdminAddStudent() {
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [formData, setFormData] = useState({
-  name: '',
-  email: '', // ✅ ADD THIS
-  user_id: '',
-  department: 'Computer Engineering',
-  semester: 1,
-  password: '',
-  student_contact: '',
-  parent_contact: '',
-});
+    name: '',
+    email: '', // ✅ ADD THIS
+    user_id: '',
+    department: 'Computer Engineering',
+    semester: 1,
+    password: '',
+    student_contact: '',
+    parent_contact: '',
+  });
 
   const [submitting, setSubmitting] = useState(false);
 
@@ -99,12 +107,12 @@ export default function AdminAddStudent() {
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       setTouched({
-  name: true,
-  email: true, // ✅ ADD
-  student_contact: true,
-  parent_contact: true,
-  password: true
-});
+        name: true,
+        email: true, // ✅ ADD
+        student_contact: true,
+        parent_contact: true,
+        password: true
+      });
       return;
     }
 
@@ -186,30 +194,30 @@ export default function AdminAddStudent() {
               </div>
 
               {/* Email */}
-<div className="admin-field-group">
-  <label className="admin-field-label">
-    <User size={13} />
-    Email <span className="admin-field-label-required">*</span>
-  </label>
-  <input
-    type="email"
-    name="email"
-    className={fieldClass('email')}
-    placeholder="e.g. student@email.com"
-    value={formData.email}
-    onChange={handleChange}
-    onBlur={handleBlur}
-    required
-    autoComplete="off"
-  />
-  {errors.email && touched.email ? (
-    <span className="admin-field-error">
-      <AlertCircle size={12} /> {errors.email}
-    </span>
-  ) : (
-    <span className="admin-input-hint">Used for login</span>
-  )}
-</div>
+              <div className="admin-field-group">
+                <label className="admin-field-label">
+                  <User size={13} />
+                  Email <span className="admin-field-label-required">*</span>
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  className={fieldClass('email')}
+                  placeholder="e.g. student@email.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  required
+                  autoComplete="off"
+                />
+                {errors.email && touched.email ? (
+                  <span className="admin-field-error">
+                    <AlertCircle size={12} /> {errors.email}
+                  </span>
+                ) : (
+                  <span className="admin-input-hint">Used for login</span>
+                )}
+              </div>
 
               {/* User ID + Password */}
               <div className="admin-field-row">
@@ -326,7 +334,7 @@ export default function AdminAddStudent() {
                     Semester <span className="admin-field-label-required">*</span>
                   </label>
                   <select name="semester" className="admin-input" value={formData.semester} onChange={handleChange} required>
-                    {[1,2,3,4,5,6,7,8].map(n => <option key={n} value={n}>Semester {n}</option>)}
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map(n => <option key={n} value={n}>Semester {n}</option>)}
                   </select>
                 </div>
               </div>
@@ -338,20 +346,20 @@ export default function AdminAddStudent() {
                   Cancel
                 </button>
                 <button
-  type="submit"
-  className="admin-btn-primary"
-  disabled={submitting || submitted}
->
-  {submitted ? (
-    <>
-      <CheckCircle2 size={16} /> Student Added!
-    </>
-  ) : submitting ? (
-    'Adding...'
-  ) : (
-    'Add Student'
-  )}
-</button>
+                  type="submit"
+                  className="admin-btn-primary"
+                  disabled={submitting || submitted}
+                >
+                  {submitted ? (
+                    <>
+                      <CheckCircle2 size={16} /> Student Added!
+                    </>
+                  ) : submitting ? (
+                    'Adding...'
+                  ) : (
+                    'Add Student'
+                  )}
+                </button>
               </div>
             </form>
           </div>
@@ -397,10 +405,10 @@ export default function AdminAddStudent() {
               <div className="admin-info-card-header">Guidelines</div>
               <div className="admin-info-card-body">
                 {[
-                  { icon: <Hash size={16} />,      title: 'User ID',         desc: 'Unique identifier used by the student to log in (e.g. UID2025001).' },
-                  { icon: <User size={16} />,      title: 'Name',            desc: 'Only alphabets and spaces are allowed — no numbers or symbols.' },
-                  { icon: <Phone size={16} />,     title: 'Contact Numbers', desc: 'Must be exactly 10 digits. Only numbers are accepted.' },
-                  { icon: <Building2 size={16} />, title: 'Department',      desc: 'Determines which subjects and notes are visible to the student.' },
+                  { icon: <Hash size={16} />, title: 'User ID', desc: 'Unique identifier used by the student to log in (e.g. UID2025001).' },
+                  { icon: <User size={16} />, title: 'Name', desc: 'Only alphabets and spaces are allowed — no numbers or symbols.' },
+                  { icon: <Phone size={16} />, title: 'Contact Numbers', desc: 'Must be exactly 10 digits. Only numbers are accepted.' },
+                  { icon: <Building2 size={16} />, title: 'Department', desc: 'Determines which subjects and notes are visible to the student.' },
                 ].map(tip => (
                   <div key={tip.title} className="admin-info-item">
                     <div className="admin-info-item-icon" style={{ background: 'var(--color-background)', color: 'var(--color-primary)' }}>
