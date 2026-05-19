@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Home, FileText, LogOut, Menu, X } from 'lucide-react';
+import { Home, FileText, LogOut, Menu, X, CalendarCheck, DollarSign, User } from 'lucide-react';
 import '../styles/StudentLayout.css';
 
 export default function StudentLayout({ children }) {
@@ -17,8 +17,11 @@ export default function StudentLayout({ children }) {
   };
 
   const navItems = [
-    { label: 'Dashboard', path: '/student/dashboard', icon: <Home size={20} /> },
-    { label: 'Notes',     path: '/student/notes',     icon: <FileText size={20} /> },
+    { label: 'Dashboard',  path: '/student/dashboard',  icon: <Home size={20} /> },
+    { label: 'Notes',      path: '/student/notes',      icon: <FileText size={20} /> },
+    { label: 'Attendance', path: '/student/attendance', icon: <CalendarCheck size={20} /> },
+    { label: 'Fees',       path: '/student/fees',       icon: <DollarSign size={20} /> },
+    { label: 'Profile',    path: '/student/profile',    icon: <User size={20} /> },
   ];
 
   const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(student.name || 'Student')}&background=4f46e5&color=fff&bold=true`;

@@ -1,14 +1,36 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogIn, User, Lock, GraduationCap, AlertCircle, BookOpen, CalendarCheck, FileText } from 'lucide-react';
+import { LogIn, User, Lock, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import '../styles/Login.css';
 
 export default function Login() {
-  const [enrollmentNo, setEnrollmentNo] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const userStr = localStorage.getItem('user');
+    
+    if (token && userStr) {
+      try {
+        const userData = JSON.parse(userStr);
+        if (userData.role === 'admin') {
+          navigate('/admin/dashboard', { replace: true });
+        } else if (userData.role === 'staff') {
+          navigate('/staff/dashboard', { replace: true });
+        } else {
+          navigate('/student/dashboard', { replace: true });
+        }
+      } catch (e) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
+    }
+  }, [navigate]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -19,12 +41,15 @@ export default function Login() {
       const response = await fetch('http://localhost:5000/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ enrollment_no: enrollmentNo, password })
+        body: JSON.stringify({ email, password })
       });
 
       const data = await response.json();
 
       if (!response.ok) {
+        if (response.status === 429) {
+          throw new Error('Too many login attempts. Please wait 15 minutes.');
+        }
         throw new Error(data.error || 'Login failed');
       }
 
@@ -33,9 +58,12 @@ export default function Login() {
 
       if (data.role === 'admin') {
         navigate('/admin/dashboard');
+      } else if (data.role === 'staff') {
+        navigate('/staff/dashboard');
       } else {
         navigate('/student/dashboard');
       }
+
     } catch (err) {
       setError(err.message);
     } finally {
@@ -45,130 +73,150 @@ export default function Login() {
 
   return (
     <div className="login-page-wrapper">
+      {/* Dynamic Animated Ambient Background Layer for Deep Glass Blur */}
+      <div className="login-bg-glows">
+        <div className="login-bg-glow glow-primary"></div>
+        <div className="login-bg-glow glow-secondary"></div>
+        <div className="login-bg-glow glow-tertiary"></div>
+      </div>
 
-      {/* ── Left Decorative Panel ── */}
+      {/* Left Decorative Information Board */}
       <div className="login-left-panel">
-        {/* Animated blobs */}
-        <div className="login-blob login-blob-1"></div>
-        <div className="login-blob login-blob-2"></div>
-        <div className="login-blob login-blob-3"></div>
-
+        <div className="login-grid-overlay"></div>
+        
         <div className="login-panel-content">
-          <div className="login-panel-logo"><img src="/eklavya-logo.png" alt="Eklavya" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /></div>
+          {/* Back to Homepage Button */}
+          <button type="button" className="back-home-btn" onClick={() => navigate('/')}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="back-arrow-icon">
+              <line x1="19" y1="12" x2="5" y2="12"></line>
+              <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            <span>Back to Homepage</span>
+          </button>
+
+          {/* Unified Brand Identity */}
+          <div className="login-panel-logo" onClick={() => navigate('/')}>
+            <div className="login-brand-icon-box">
+              <img src="/eklavya-logo.png" alt="Eklavya Logo" className="login-brand-svg" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            </div>
+            <span className="login-brand-name">Eklavya</span>
+          </div>
 
           <h2 className="login-panel-title">
-            Eklavya<br />Student Portal
+            Academic Spaces,<br />Orchestrated.
           </h2>
 
           <p className="login-panel-subtitle">
-            Your academic journey, organized.<br />
-            Access attendance, notes, and more — all in one place.
+            Experience an elegant administrative platform connecting learners, educators, and institutional operations with absolute speed.
           </p>
 
-          <div className="login-panel-badges">
-            <span className="login-panel-badge"><BookOpen size={13} /> Study Notes</span>
-            <span className="login-panel-badge"><CalendarCheck size={13} /> Attendance</span>
-            <span className="login-panel-badge"><GraduationCap size={13} /> Academics</span>
+          <div className="login-showcase-features">
+            <div className="showcase-feature-item">
+              <div className="feature-item-bullet"></div>
+              <div className="feature-item-text">
+                <strong>Syllabus Archives</strong>
+                <span>Instant access to curated materials</span>
+              </div>
+            </div>
+            <div className="showcase-feature-item">
+              <div className="feature-item-bullet"></div>
+              <div className="feature-item-text">
+                <strong>Secure Registers</strong>
+                <span>Encrypted role-specific privileges</span>
+              </div>
+            </div>
+            <div className="showcase-feature-item">
+              <div className="feature-item-bullet"></div>
+              <div className="feature-item-text">
+                <strong>Attendance Feeds</strong>
+                <span>Real-time classroom session logging</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* ── Right Form Panel ── */}
+      {/* Right Login Input Form Panel */}
       <div className="login-right-panel">
-        <div className="login-form-container">
-
-          {/* Mobile brand header */}
-          <div className="login-mobile-brand">
-          <div className="login-mobile-brand-icon"><img src="/eklavya-logo.png" alt="" style={{ width: '100%', height: '100%', objectFit: 'contain' }} /></div>
-          <div>
-              <div style={{ fontWeight: 800, fontSize: '1.1rem' }}>Eklavya Portal</div>
-              <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Student Academic System</div>
-            </div>
+        <div className="login-form-card">
+          {/* Brand header specifically for Mobile/Tablet displays */}
+          <div className="mobile-brand-header" onClick={() => navigate('/')}>
+            <img src="/eklavya-logo.png" alt="Eklavya Logo" className="mobile-brand-svg" style={{ width: '32px', height: '32px', objectFit: 'contain', borderRadius: '5px' }} />
+            <span className="mobile-brand-name">Eklavya</span>
           </div>
 
-          {/* Heading */}
           <div className="login-form-heading">
-            <h1>Welcome back</h1>
-            <p>Sign in to continue to your dashboard</p>
+            <h1>Secure Sign In</h1>
+            <p>Access your institutional workspace dashboard</p>
           </div>
 
-          {/* Error */}
           {error && (
-            <div className="login-error-banner">
-              <AlertCircle size={16} />
-              {error}
+            <div className="login-alert fade-in">
+              <AlertCircle size={18} className="alert-icon" />
+              <span>{error}</span>
             </div>
           )}
 
-          {/* Form */}
           <form onSubmit={handleLogin}>
             <div className="login-input-group">
-              <label className="login-input-label">Enrollment Number</label>
-              <div className="login-input-wrapper">
-                <User size={17} className="login-input-icon" />
+              <label className="login-input-label">Email Address</label>
+              <div className="login-input-container">
                 <input
-                  id="enrollment-input"
-                  type="text"
-                  className="input-field login-input"
-                  placeholder="e.g. ENR001 or admin"
-                  value={enrollmentNo}
-                  onChange={(e) => setEnrollmentNo(e.target.value)}
+                  type="email"
+                  className="login-field"
+                  placeholder="name@eklavya.academy"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   autoComplete="username"
                   required
                 />
+                <User size={18} className="login-input-icon" />
               </div>
             </div>
 
             <div className="login-input-group">
               <label className="login-input-label">Password</label>
-              <div className="login-input-wrapper">
-                <Lock size={17} className="login-input-icon" />
+              <div className="login-input-container">
                 <input
-                  id="password-input"
-                  type="password"
-                  className="input-field login-input"
-                  placeholder="Enter your password"
+                  type={showPassword ? 'text' : 'password'}
+                  className="login-field"
+                  placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete="current-password"
                   required
+                  style={{ paddingRight: '3.5rem' }}
                 />
+                <Lock size={18} className="login-input-icon" />
+                <button
+                  type="button"
+                  className="login-password-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
             </div>
 
-            <button
-              id="login-submit-btn"
-              type="submit"
-              className="login-submit-btn"
-              disabled={loading}
-            >
+            <button type="submit" className="login-btn" disabled={loading}>
               {loading ? (
-                <>
-                  <div className="login-spinner"></div>
-                  Signing in…
-                </>
+                <div className="login-spinner"></div>
               ) : (
                 <>
-                  <LogIn size={18} />
-                  Sign In
+                  <span>Authenticate Dashboard</span>
+                  <LogIn size={18} className="login-btn-arrow" />
                 </>
               )}
             </button>
           </form>
 
-          {/* Demo credentials */}
-          <div className="login-demo-credentials">
-            <p>Demo Credentials</p>
-            <div className="login-demo-row">
-              <span className="login-demo-role">Admin</span>
-              <span className="login-demo-cred">admin / admin</span>
-            </div>
-            <div className="login-demo-row">
-              <span className="login-demo-role">Student</span>
-              <span className="login-demo-cred">ENR001 / password123</span>
-            </div>
+          {/* Direct path back to landing page for mobile users */}
+          <div className="mobile-back-container">
+            <span className="mobile-back-text" onClick={() => navigate('/')}>
+              ← Back to Homepage
+            </span>
           </div>
-
         </div>
       </div>
     </div>

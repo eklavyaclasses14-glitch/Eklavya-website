@@ -57,7 +57,9 @@
 }
 
 @media (max-width: 640px) {
-  .ams-students-stats { grid-template-columns: repeat(2, 1fr); }
+  .ams-students-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .ams-stat-card {
@@ -72,14 +74,27 @@
 .ams-stat-card::before {
   content: '';
   position: absolute;
-  top: 0; left: 0; right: 0;
+  top: 0;
+  left: 0;
+  right: 0;
   height: 3px;
 }
 
-.ams-stat-card.indigo::before { background: linear-gradient(90deg, var(--color-primary), var(--color-primary-hover)); }
-.ams-stat-card.sky::before    { background: linear-gradient(90deg, var(--color-primary), var(--color-primary-hover)); }
-.ams-stat-card.emerald::before{ background: linear-gradient(90deg, #10b981, #34d399); }
-.ams-stat-card.amber::before  { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.ams-stat-card.indigo::before {
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-hover));
+}
+
+.ams-stat-card.sky::before {
+  background: linear-gradient(90deg, #0ea5e9, #38bdf8);
+}
+
+.ams-stat-card.emerald::before {
+  background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+.ams-stat-card.amber::before {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
 
 .ams-stat-value {
   font-size: 1.625rem;
@@ -123,7 +138,7 @@
 }
 
 .ams-count-pill {
-  background: rgba(74, 92, 106,0.08);
+  background: rgba(74, 92, 106, 0.08);
   color: var(--color-primary);
   font-size: 0.72rem;
   font-weight: 700;
@@ -261,9 +276,12 @@
   font-weight: 700;
   padding: 0.2rem 0.55rem;
   border-radius: 99px;
-  background: rgba(74, 92, 106, 0.08);
+  background: rgba(100, 166, 217, 0.08);
   color: var(--color-primary);
   white-space: nowrap;
+  display: inline-flex;
+  width: fit-content;
+  color: var(--color-text-muted);
 }
 
 /* Semester */
@@ -311,9 +329,9 @@
 }
 
 .ams-btn-edit:hover {
-  background: rgba(74, 92, 106, 0.08);
-  border-color: var(--color-primary-hover);
-  color: var(--color-primary);
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #2563eb;
 }
 
 .ams-btn-delete {
@@ -358,8 +376,13 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .ams-modal {
@@ -373,8 +396,15 @@
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .ams-modal-header {
@@ -511,7 +541,7 @@
   position: fixed;
   bottom: 2rem;
   right: 2rem;
-  background: var(--color-text);
+  background: var(--color-background);
   color: white;
   padding: 0.75rem 1.25rem;
   border-radius: var(--radius-md);
@@ -526,19 +556,27 @@
 }
 
 @keyframes slideUpToast {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Responsive */
 @media (max-width: 768px) {
+
   .ams-table-header,
   .ams-student-row {
     grid-template-columns: 1fr 80px 70px;
   }
 
   .ams-table-header span:nth-child(n+4),
-  .ams-student-row > *:nth-child(n+4) {
+  .ams-student-row>*:nth-child(n+4) {
     display: none;
   }
 

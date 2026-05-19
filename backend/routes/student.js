@@ -1,21 +1,23 @@
 const express = require('express');
 const Student = require('../models/Student');
 const Subject = require('../models/Subject');
-const Note    = require('../models/Note');
-const { protect } = require('../middleware/auth');
+const Note = require('../models/Note');
+const Attendance = require('../models/Attendance');
+const Fee = require('../models/Fee');
+const { protect, enforceStudentOwnership } = require('../middleware/auth');
 const router = express.Router();
 
 router.use(protect);
 
 // GET /api/student/:id/dashboard
-router.get('/:id/dashboard', async (req, res) => {
+router.get('/:id/dashboard', enforceStudentOwnership, async (req, res) => {
   try {
     const student = await Student.findById(req.params.id).select('-password');
     if (!student) return res.status(404).json({ error: 'Student not found' });
 
     const subjects = await Subject.find({
       department: student.department,
-      semester:   student.semester,
+      semester: student.semester,
     });
 
     const subjectIds = subjects.map(s => s._id);
@@ -25,15 +27,36 @@ router.get('/:id/dashboard', async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(5);
 
+    // Fetch attendance for summary
+    const attendanceRecords = await Attendance.find({ student_id: req.params.id });
+    const attendanceSummary = subjects.map(sub => {
+      const subLogs = attendanceRecords.filter(a => a.subject_id.toString() === sub._id.toString());
+      const present = subLogs.filter(a => a.status === 'Present').length;
+      const total = subLogs.length;
+      const percentage = total > 0 ? Math.round((present / total) * 100) : 0;
+      return {
+        _id: sub._id,
+        subject_name: sub.subject_name,
+        percentage
+      };
+    });
+
+    // Fetch fee summary
+    const fees = await Fee.find({ student_id: req.params.id });
+    const pendingFees = fees.filter(f => f.status !== 'Paid').reduce((sum, f) => sum + f.amount, 0);
+
     res.json({
       student,
       subjects,
+      attendance: attendanceSummary,
+      pendingFees,
       recentNotes: recentNotes.map(n => ({
-        _id:                  n._id,
-        title:                n.title,
-        file_type:            n.file_type,
-        google_drive_file_id: n.google_drive_file_id,
-        subject_name:         n.subject_id?.subject_name || '',
+        _id: n._id,
+        title: n.title,
+        file_type: n.file_type,
+        fileUrl: n.fileUrl || '',
+        label: n.label || '',
+        subject_name: n.subject_id?.subject_name || '',
       })),
     });
   } catch (err) {
@@ -41,30 +64,115 @@ router.get('/:id/dashboard', async (req, res) => {
   }
 });
 
-// GET /api/student/:id/notes
-router.get('/:id/notes', async (req, res) => {
+// GET /api/student/:id/attendance// 
+router.get('/:id/attendance', enforceStudentOwnership, async (req, res) => {
   try {
-    const student = await Student.findById(req.params.id).select('department semester');
-    if (!student) return res.status(404).json({ error: 'Student not found' });
+    const studentId = req.params.id;
 
+    // Get student details
+    const student = await Student.findById(studentId);
+
+    if (!student) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+
+    // Fetch only matching subjects
     const subjects = await Subject.find({
       department: student.department,
-      semester:   student.semester,
+      semester: student.semester
     });
 
-    const subjectIds = subjects.map(s => s._id);
-    const subjectMap = Object.fromEntries(subjects.map(s => [s._id.toString(), s.subject_name]));
+    const attendanceRecords = await Attendance.find({
+      student_id: studentId
+    }).populate('subject_id', 'subject_name');
 
-    const notes = await Note.find({ subject_id: { $in: subjectIds } }).sort({ createdAt: -1 });
+    const summary = subjects.map(sub => {
+      const subLogs = attendanceRecords.filter(
+        a => a.subject_id?._id.toString() === sub._id.toString()
+      );
+
+      const present = subLogs.filter(
+        a => a.status === 'Present'
+      ).length;
+
+      const total = subLogs.length;
+
+      const percentage =
+        total > 0
+          ? Math.round((present / total) * 100)
+          : 0;
+
+      return {
+        _id: sub._id,
+        subject_name: sub.subject_name,
+        percentage,
+        present,
+        total,
+        history: subLogs.sort(
+          (a, b) => new Date(b.date) - new Date(a.date)
+        ).slice(0, 50)
+      };
+    });
+
+    res.json({ attendance: summary });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+// GET /api/student/:id/fees
+router.get('/:id/fees', enforceStudentOwnership, async (req, res) => {
+  try {
+    const fees = await Fee.find({ student_id: req.params.id })
+      .sort({ due_date: -1 })
+      .limit(20);
+    res.json({ fees });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/student/:id/notes
+router.get('/:id/notes', enforceStudentOwnership, async (req, res) => {
+  try {
+    const { department, semester, page = 1, limit = 6, file_type } = req.query;
+    const skip = (Number(page) - 1) * Number(limit);
+
+    let query = {};
+
+    if (department === 'All') {
+      // Fetch all notes
+    } else if (department && semester) {
+      const subjects = await Subject.find({ department, semester: Number(semester) });
+      const subjectIds = subjects.map(s => s._id);
+      query.subject_id = { $in: subjectIds };
+    } else {
+      return res.json({ notes: [], total: 0, pages: 0 });
+    }
+
+    if (file_type && file_type !== 'all') {
+      query.file_type = file_type;
+    }
+
+    const total = await Note.countDocuments(query);
+    const notes = await Note.find(query)
+      .populate('subject_id', 'subject_name')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(Number(limit));
 
     res.json({
       notes: notes.map(n => ({
-        _id:                  n._id,
-        title:                n.title,
-        file_type:            n.file_type,
-        google_drive_file_id: n.google_drive_file_id,
-        subject_name:         subjectMap[n.subject_id.toString()] || '',
+        _id: n._id,
+        title: n.title,
+        label: n.label || '',
+        file_type: n.file_type,
+        fileUrl: n.fileUrl || '',
+        subject_id: { subject_name: n.subject_id?.subject_name || '' },
       })),
+      total,
+      pages: Math.ceil(total / Number(limit)),
+      currentPage: Number(page)
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

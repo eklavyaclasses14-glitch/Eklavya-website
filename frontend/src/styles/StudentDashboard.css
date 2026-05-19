@@ -20,7 +20,9 @@
 }
 
 @keyframes sd-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ── Page header ── */
@@ -51,13 +53,15 @@
 /* ── Stat strip ── */
 .sd-stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
   margin-bottom: 1.75rem;
 }
 
 @media (max-width: 500px) {
-  .sd-stats { grid-template-columns: 1fr; }
+  .sd-stats {
+    grid-template-columns: 1fr;
+  }
 }
 
 .sd-stat-card {
@@ -76,13 +80,31 @@
 .sd-stat-card::after {
   content: '';
   position: absolute;
-  top: 0; left: 0; right: 0;
+  top: 0;
+  left: 0;
+  right: 0;
   height: 3px;
 }
 
-.sd-stat-card.green::after  { background: linear-gradient(90deg, #10b981, #34d399); }
-.sd-stat-card.indigo::after { background: linear-gradient(90deg, var(--color-primary), var(--color-primary-hover)); }
-.sd-stat-card.amber::after  { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.sd-stat-card.green::after {
+  background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+.sd-stat-card.indigo::after {
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-hover));
+}
+
+.sd-stat-card.amber::after {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
+
+.sd-stat-card.emerald::after {
+  background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+.sd-stat-card.sky::after {
+  background: linear-gradient(90deg, #0ea5e9, #38bdf8);
+}
 
 .sd-stat-card:hover {
   transform: translateY(-2px);
@@ -99,9 +121,32 @@
   flex-shrink: 0;
 }
 
-.sd-stat-icon.green  { background: rgba(16,185,129,0.1);  color: #10b981; }
-.sd-stat-icon.indigo { background: rgba(74, 92, 106,0.1);   color: var(--color-primary); }
-.sd-stat-icon.amber  { background: rgba(245,158,11,0.1);  color: #f59e0b; }
+.sd-stat-icon.green {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.sd-stat-icon.indigo {
+  background: rgba(74, 92, 106, 0.1);
+  color: var(--color-primary);
+}
+
+.sd-stat-icon.amber {
+  background: rgba(245, 158, 11, 0.1);
+  color: #f59e0b;
+}
+
+.sd-stat-icon.emerald {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.sd-stat-icon.sky {
+  background: rgba(14, 165, 233, 0.1);
+  color: #0ea5e9;
+}
+
+
 
 .sd-stat-value {
   font-size: 1.625rem;
@@ -159,8 +204,13 @@
   transition: background 0.15s ease;
 }
 
-.sd-subject-row:last-child { border-bottom: none; }
-.sd-subject-row:hover { background: var(--color-secondary); }
+.sd-subject-row:last-child {
+  border-bottom: none;
+}
+
+.sd-subject-row:hover {
+  background: var(--color-secondary);
+}
 
 .sd-subject-dot {
   width: 8px;
@@ -186,8 +236,13 @@
   transition: background 0.15s ease;
 }
 
-.sd-note-row:last-child { border-bottom: none; }
-.sd-note-row:hover { background: var(--color-secondary); }
+.sd-note-row:last-child {
+  border-bottom: none;
+}
+
+.sd-note-row:hover {
+  background: var(--color-secondary);
+}
 
 .sd-note-icon {
   width: 36px;
@@ -199,8 +254,15 @@
   flex-shrink: 0;
 }
 
-.sd-note-icon.pdf   { background: rgba(239,68,68,0.1); color: #ef4444; }
-.sd-note-icon.image { background: rgba(155, 168, 171,0.1); color: var(--color-primary); }
+.sd-note-icon.pdf {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.sd-note-icon.image {
+  background: rgba(155, 168, 171, 0.1);
+  color: var(--color-primary);
+}
 
 .sd-note-title {
   font-size: 0.875rem;
@@ -218,8 +280,15 @@
   display: inline-block;
 }
 
-.sd-note-badge.pdf   { background: rgba(239,68,68,0.1); color: #ef4444; }
-.sd-note-badge.image { background: rgba(155, 168, 171,0.1); color: var(--color-primary); }
+.sd-note-badge.pdf {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+.sd-note-badge.image {
+  background: rgba(155, 168, 171, 0.1);
+  color: var(--color-primary);
+}
 
 .sd-empty {
   padding: 2rem;
@@ -245,8 +314,136 @@
 }
 
 /* Dot colors */
-.dot-0 { background: var(--color-primary); }
-.dot-1 { background: var(--color-primary); }
-.dot-2 { background: #10b981; }
-.dot-3 { background: #f59e0b; }
-.dot-4 { background: #ec4899; }
+.dot-0 {
+  background: var(--color-primary);
+}
+
+.dot-1 {
+  background: var(--color-primary);
+}
+
+.dot-2 {
+  background: #10b981;
+}
+
+.dot-3 {
+  background: #f59e0b;
+}
+
+.dot-4 {
+  background: #ec4899;
+}
+
+/* ───────── Attendance List ───────── */
+
+.sa-attendance-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sa-attendance-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  padding: 1rem 1.2rem;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+
+  transition: .18s ease;
+}
+
+.sa-attendance-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Left */
+
+.sa-attendance-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.sa-attendance-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: rgba(74, 92, 106, .08);
+  color: var(--color-primary);
+
+  flex-shrink: 0;
+}
+
+.sa-attendance-subject {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.sa-attendance-date {
+  font-size: .82rem;
+  color: var(--color-text-muted);
+  margin-top: .25rem;
+}
+
+/* Right */
+
+.sa-attendance-status {
+  padding: .55rem .9rem;
+  border-radius: 999px;
+
+  font-size: .78rem;
+  font-weight: 700;
+
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+
+  white-space: nowrap;
+}
+
+.sa-attendance-status.present {
+  background: #ecfdf5;
+  color: #10b981;
+}
+
+.sa-attendance-status.absent {
+  background: #fef2f2;
+  color: #ef4444;
+}
+
+/* Empty */
+
+.sa-attendance-empty {
+  padding: 3rem;
+  text-align: center;
+  border: 1px dashed var(--color-border);
+  border-radius: 18px;
+  color: var(--color-text-muted);
+}
+
+/* Mobile */
+
+@media(max-width:768px) {
+
+  .sa-attendance-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .sa-attendance-status {
+    width: 100%;
+    justify-content: center;
+  }
+
+}

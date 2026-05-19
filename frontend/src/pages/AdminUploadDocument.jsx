@@ -1,9 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
-import { UploadCloud, ArrowLeft, FileText, Image, Link2, BookOpen, Building2, GraduationCap, CheckCircle2, AlertTriangle, File as FileIcon } from 'lucide-react';
+import { ArrowLeft, UploadCloud, File, Image, CheckCircle2, AlertCircle, X } from 'lucide-react';
 import { apiFetch } from '../utils/apiFetch';
-import '../styles/AdminForms.css';
 
 const DEPARTMENTS = [
   'Computer Engineering',
@@ -14,16 +13,21 @@ const DEPARTMENTS = [
 
 export default function AdminUploadDocument() {
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
+
   const [subjects, setSubjects] = useState([]);
-  const [submitted, setSubmitted] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [toast, setToast] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+
   const [formData, setFormData] = useState({
     title: '',
+    label: '',
     department: 'Computer Engineering',
-    semester: 4,
+    semester: 1,
     subject_id: '',
     file_type: 'pdf',
-    google_drive_file_id: '',
   });
 
   useEffect(() => {
@@ -34,275 +38,213 @@ export default function AdminUploadDocument() {
         if (data.length > 0) {
           setFormData(prev => ({ ...prev, subject_id: data[0]._id }));
         }
-      })
-      .catch(console.error);
+      });
   }, []);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
 
   const filteredSubjects = subjects.filter(
     s => s.department === formData.department && s.semester == formData.semester
   );
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    if (name === 'department' || name === 'semester') {
+      const newSubjects = subjects.filter(
+        s => s.department === (name === 'department' ? value : formData.department) &&
+             s.semester == (name === 'semester' ? value : formData.semester)
+      );
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+        subject_id: newSubjects.length > 0 ? newSubjects[0]._id : '',
+      }));
+      return;
+    }
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setSelectedFile(file);
+    // Auto-detect file type
+    const isPdf = file.type === 'application/pdf';
+    setFormData(prev => ({ ...prev, file_type: isPdf ? 'pdf' : 'image' }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!selectedFile) {
+      setToast({ type: 'error', msg: 'Please select a file to upload' });
+      return;
+    }
+
     setUploading(true);
+    setProgress(10);
+
     try {
-      const res = await apiFetch('http://localhost:5000/api/admin/notes', {
+      const data = new FormData();
+      data.append('file', selectedFile);
+      data.append('title', formData.title);
+      data.append('label', formData.label);
+      data.append('subject_id', formData.subject_id);
+      data.append('file_type', formData.file_type);
+
+      const token = localStorage.getItem('token');
+      setProgress(40);
+
+      const res = await fetch('http://localhost:5000/api/admin/notes', {
         method: 'POST',
-        body: JSON.stringify(formData),
+        headers: { Authorization: `Bearer ${token}` },
+        body: data,
       });
 
+      setProgress(90);
       if (!res.ok) {
         const d = await res.json();
         throw new Error(d.error || 'Upload failed');
       }
 
-      setSubmitted(true);
-      setTimeout(() => navigate('/admin/dashboard'), 1500);
+      setProgress(100);
+      setToast({ type: 'success', msg: 'Document uploaded successfully!' });
+      setSelectedFile(null);
+      setFormData(prev => ({ ...prev, title: '', label: '' }));
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      setTimeout(() => setProgress(0), 600);
+
     } catch (err) {
-      alert(err.message);
+      setToast({ type: 'error', msg: err.message });
+      setProgress(0);
+    } finally {
       setUploading(false);
     }
   };
-
-  const driveIdHasValue = formData.google_drive_file_id.trim().length > 0;
 
   return (
     <AdminLayout>
       <div className="admin-form-page">
 
-        {/* ── Page Header ── */}
+        {/* Header */}
         <div className="admin-form-page-header">
           <button className="admin-back-btn" onClick={() => navigate('/admin/dashboard')}>
             <ArrowLeft size={18} />
           </button>
           <div>
-            <h1 className="admin-form-page-title">Upload Study Material</h1>
-            <p className="admin-form-page-sub">Add notes, PDFs, or diagrams for students via Google Drive</p>
+            <h1 className="admin-form-page-title">Upload Document</h1>
+            <p className="admin-form-page-sub">Add study material for students via Cloudinary</p>
           </div>
         </div>
 
-        <div className="admin-form-layout">
+        {/* Toast */}
+        {toast && (
+          <div style={{
+            display: 'flex', alignItems: 'center', gap: '0.75rem',
+            padding: '0.9rem 1.25rem', borderRadius: '12px', marginBottom: '1.25rem',
+            background: toast.type === 'success' ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)',
+            border: `1px solid ${toast.type === 'success' ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)'}`,
+            color: toast.type === 'success' ? '#34d399' : '#f87171',
+          }}>
+            {toast.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
+            <span style={{ flex: 1 }}>{toast.msg}</span>
+            <button onClick={() => setToast(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit' }}>
+              <X size={16} />
+            </button>
+          </div>
+        )}
 
-          {/* ── Main Form ── */}
-          <div className="admin-form-card">
-            <div className="admin-form-card-header">
-              <div className="admin-form-card-header-icon stat-icon-sky">
-                <UploadCloud size={18} />
-              </div>
-              <span className="admin-form-card-header-title">Document Details</span>
+        {/* Progress bar */}
+        {progress > 0 && (
+          <div style={{ height: '4px', background: 'var(--color-border)', borderRadius: '2px', marginBottom: '1.25rem', overflow: 'hidden' }}>
+            <div style={{
+              height: '100%', width: `${progress}%`,
+              background: 'linear-gradient(90deg, var(--color-primary), #a855f7)',
+              borderRadius: '2px',
+              transition: 'width 0.4s ease',
+            }} />
+          </div>
+        )}
+
+        {/* Form */}
+        <div className="admin-form-card">
+          <form onSubmit={handleSubmit} className="admin-form-card-body">
+
+            {/* Title */}
+            <div className="admin-field-group">
+              <label>Title</label>
+              <input type="text" name="title" className="admin-input" value={formData.title} onChange={handleChange} required placeholder="e.g. Data Structures - Unit 1 Notes" />
             </div>
 
-            <form onSubmit={handleSubmit} className="admin-form-card-body">
+            {/* Label */}
+            <div className="admin-field-group">
+              <label>Label (Category)</label>
+              <input type="text" name="label" className="admin-input" placeholder="e.g. Unit 1 / Assignment / Previous Year Paper" value={formData.label} onChange={handleChange} required />
+            </div>
 
-              {/* Document Title */}
+            {/* Department + Semester */}
+            <div className="admin-field-row">
               <div className="admin-field-group">
-                <label className="admin-field-label">
-                  <FileText size={13} />
-                  Document Title <span className="admin-field-label-required">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="title"
-                  className="admin-input"
-                  placeholder="e.g. Unit 3 – Data Structures Notes"
-                  value={formData.title}
-                  onChange={handleChange}
-                  required
-                  autoComplete="off"
-                />
-              </div>
-
-              {/* Department + Semester */}
-              <div className="admin-field-row">
-                <div className="admin-field-group">
-                  <label className="admin-field-label">
-                    <Building2 size={13} />
-                    Department <span className="admin-field-label-required">*</span>
-                  </label>
-                  <select name="department" className="admin-input" value={formData.department} onChange={handleChange} required>
-                    {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
-                  </select>
-                </div>
-
-                <div className="admin-field-group">
-                  <label className="admin-field-label">
-                    <GraduationCap size={13} />
-                    Semester <span className="admin-field-label-required">*</span>
-                  </label>
-                  <select name="semester" className="admin-input" value={formData.semester} onChange={handleChange} required>
-                    {[1,2,3,4,5,6,7,8].map(n => <option key={n} value={n}>Semester {n}</option>)}
-                  </select>
-                </div>
-              </div>
-
-              {/* Subject */}
-              <div className="admin-field-group">
-                <label className="admin-field-label">
-                  <BookOpen size={13} />
-                  Subject <span className="admin-field-label-required">*</span>
-                </label>
-                <select name="subject_id" className="admin-input" value={formData.subject_id} onChange={handleChange} required>
-                  {filteredSubjects.length === 0 && <option value="">No subjects for this dept/semester</option>}
-                  {filteredSubjects.map(sub => <option key={sub._id} value={sub._id}>{sub.subject_name}</option>)}
+                <label>Department</label>
+                <select name="department" className="admin-input" value={formData.department} onChange={handleChange}>
+                  {DEPARTMENTS.map(d => <option key={d}>{d}</option>)}
                 </select>
-                {filteredSubjects.length === 0 && (
-                  <span className="admin-input-hint" style={{ color: '#f59e0b', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                    <AlertTriangle size={13} /> No subjects found — try changing department or semester
-                  </span>
+              </div>
+              <div className="admin-field-group">
+                <label>Semester</label>
+                <select name="semester" className="admin-input" value={formData.semester} onChange={handleChange}>
+                  {[1,2,3,4,5,6,7,8].map(n => <option key={n}>{n}</option>)}
+                </select>
+              </div>
+            </div>
+
+            {/* Subject */}
+            <div className="admin-field-group">
+              <label>Subject</label>
+              <select name="subject_id" className="admin-input" value={formData.subject_id} onChange={handleChange}>
+                {filteredSubjects.length === 0 ? (
+                  <option value="">No subjects available</option>
+                ) : (
+                  filteredSubjects.map(sub => (
+                    <option key={sub._id} value={sub._id}>{sub.subject_name}</option>
+                  ))
                 )}
-              </div>
-
-              {/* File Type toggle */}
-              <div className="admin-field-group">
-                <label className="admin-field-label">File Type <span className="admin-field-label-required">*</span></label>
-                <div className="admin-file-type-group">
-                  <label className="admin-file-type-option">
-                    <input
-                      type="radio"
-                      name="file_type"
-                      value="pdf"
-                      checked={formData.file_type === 'pdf'}
-                      onChange={handleChange}
-                    />
-                    <span className="admin-file-type-label">
-                      <span className="admin-file-type-icon" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444' }}><FileIcon size={18} /></span>
-                      <span className="admin-file-type-name">PDF</span>
-                      <span className="admin-file-type-desc">Lecture notes, question papers, assignments</span>
-                    </span>
-                  </label>
-
-                  <label className="admin-file-type-option">
-                    <input
-                      type="radio"
-                      name="file_type"
-                      value="image"
-                      checked={formData.file_type === 'image'}
-                      onChange={handleChange}
-                    />
-                    <span className="admin-file-type-label">
-                      <span className="admin-file-type-icon" style={{ background: 'rgba(14,165,233,0.1)', color: 'var(--color-primary)' }}><Image size={18} /></span>
-                      <span className="admin-file-type-name">Image</span>
-                      <span className="admin-file-type-desc">Diagrams, charts, hand-written notes</span>
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              {/* Google Drive ID dropzone */}
-              <div className="admin-field-group">
-                <label className="admin-field-label">
-                  <Link2 size={13} />
-                  Google Drive File ID <span className="admin-field-label-required">*</span>
-                </label>
-
-                <div className={`admin-dropzone ${driveIdHasValue ? 'has-value' : ''}`}>
-                  <div className="admin-dropzone-icon">
-                    <UploadCloud size={26} />
-                  </div>
-                  <p className="admin-dropzone-title">
-                    {driveIdHasValue ? '✅ Drive ID linked' : 'Paste your Google Drive File ID'}
-                  </p>
-                  <p className="admin-dropzone-sub">
-                    Open the file in Google Drive → Share → Copy link → extract the ID between <code>/d/</code> and <code>/view</code>
-                  </p>
-                  <input
-                    type="text"
-                    name="google_drive_file_id"
-                    className="admin-input admin-dropzone-input"
-                    placeholder="e.g. 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms"
-                    value={formData.google_drive_file_id}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-                <span className="admin-input-hint">The file must be set to "Anyone with the link can view"</span>
-              </div>
-
-              <div className="admin-form-divider" />
-
-              {/* Actions */}
-              <div className="admin-form-actions">
-                <button type="button" className="admin-cancel-btn" onClick={() => navigate('/admin/dashboard')}>
-                  Cancel
-                </button>
-                <button type="submit" className="admin-submit-btn" disabled={uploading || submitted || filteredSubjects.length === 0}>
-                  {submitted ? (
-                    <><CheckCircle2 size={16} /> Uploaded!</>
-                  ) : uploading ? (
-                    'Uploading...'
-                  ) : (
-                    <><UploadCloud size={16} /> Upload Document</>
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
-
-          {/* ── Right Sidebar Tips ── */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-
-            {/* Preview */}
-            <div className="admin-info-card">
-              <div className="admin-info-card-header">Document Preview</div>
-              <div className="admin-info-card-body" style={{ alignItems: 'center', textAlign: 'center' }}>
-                <div style={{
-                  width: 56, height: 56, borderRadius: 'var(--radius-lg)',
-                  background: formData.file_type === 'pdf' ? 'rgba(239,68,68,0.1)' : 'rgba(14,165,233,0.1)',
-                  color: formData.file_type === 'pdf' ? '#ef4444' : 'var(--color-primary)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto'
-                }}>
-                  {formData.file_type === 'pdf' ? <FileText size={28} /> : <Image size={28} />}
-                </div>
-                <p style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--color-text)', marginTop: '0.75rem' }}>
-                  {formData.title || 'Document Title'}
-                </p>
-                <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
-                  {formData.department} · Sem {formData.semester}
-                </p>
-                <span style={{
-                  marginTop: '0.5rem', display: 'inline-block',
-                  fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase',
-                  padding: '0.2rem 0.6rem', borderRadius: 99,
-                  background: formData.file_type === 'pdf' ? 'rgba(239,68,68,0.1)' : 'rgba(14,165,233,0.1)',
-                  color: formData.file_type === 'pdf' ? '#ef4444' : 'var(--color-primary)'
-                }}>
-                  {formData.file_type}
-                </span>
-              </div>
+              </select>
             </div>
 
-            {/* Tips */}
-            <div className="admin-info-card">
-              <div className="admin-info-card-header">How to get Drive ID</div>
-              <div className="admin-info-card-body">
-                {[
-                  { step: '1', text: 'Upload the file to Google Drive' },
-                  { step: '2', text: 'Right-click the file → "Share"' },
-                  { step: '3', text: 'Set access to "Anyone with the link"' },
-                  { step: '4', text: 'Copy the link — the ID is between /d/ and /view' },
-                ].map(item => (
-                  <div key={item.step} className="admin-info-item">
-                    <div className="admin-info-item-icon" style={{
-                      background: 'rgba(74, 92, 106, 0.1)', color: 'var(--color-primary)',
-                      fontWeight: 800, fontSize: '0.8125rem'
-                    }}>
-                      {item.step}
-                    </div>
-                    <div>
-                      <p className="admin-info-item-desc" style={{ marginTop: 0 }}>{item.text}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+            {/* File Picker */}
+            <div className="admin-field-group">
+              <label>File (PDF or Image, max 20 MB)</label>
+              <label style={{
+                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                gap: '0.75rem', padding: '2rem', cursor: 'pointer',
+                border: `2px dashed ${selectedFile ? 'var(--color-primary)' : 'var(--color-border)'}`,
+                borderRadius: '12px', background: selectedFile ? 'rgba(74,92,106,0.08)' : 'transparent',
+                transition: 'all 0.2s ease',
+              }}>
+                {selectedFile ? (
+                  <>
+                    {selectedFile.type === 'application/pdf' ? <File size={36} style={{ color: 'var(--color-primary)' }} /> : <Image size={36} style={{ color: 'var(--color-primary)' }} />}
+                    <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-text)' }}>{selectedFile.name}</span>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</span>
+                  </>
+                ) : (
+                  <>
+                    <UploadCloud size={36} style={{ color: 'var(--color-text-muted)' }} />
+                    <span style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)' }}>Click to select a PDF or Image</span>
+                  </>
+                )}
+                <input ref={fileInputRef} type="file" accept=".pdf,image/*" onChange={handleFileChange} style={{ display: 'none' }} />
+              </label>
             </div>
 
-          </div>
+            {/* Submit */}
+            <button type="submit" className="admin-submit-btn" disabled={uploading}>
+              {uploading ? `Uploading… ${progress}%` : (
+                <><UploadCloud size={16} /> Upload Document</>
+              )}
+            </button>
+
+          </form>
         </div>
+
       </div>
     </AdminLayout>
   );

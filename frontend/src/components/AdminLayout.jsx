@@ -1,12 +1,41 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, BookOpen, UploadCloud, LogOut, Menu, X, UserPlus, UserCheck, FileText } from 'lucide-react';
+import { LayoutDashboard, Users, User, BookOpen, UploadCloud, LogOut, Menu, X, UserPlus, UserCheck, FileText, CalendarCheck, DollarSign } from 'lucide-react';
 import '../styles/AdminLayout.css';
 
 export default function AdminLayout({ children }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('user')) || {};
+    } catch {
+      return {};
+    }
+  });
+
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Listen for profile updates
+  useEffect(() => {
+    const handleSync = () => {
+      console.log('[AdminLayout] Syncing user data from localStorage...');
+      try {
+        const stored = JSON.parse(localStorage.getItem('user')) || {};
+        setUser(stored);
+      } catch (err) {
+        console.error('[AdminLayout] Sync error:', err);
+      }
+    };
+
+    window.addEventListener('profileUpdated', handleSync);
+    window.addEventListener('storage', handleSync); 
+
+    return () => {
+      window.removeEventListener('profileUpdated', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem('user');
@@ -21,6 +50,10 @@ export default function AdminLayout({ children }) {
     { label: 'Manage Documents', path: '/admin/notes',        icon: <FileText size={18} /> },
     { label: 'Upload Document',  path: '/admin/notes/upload', icon: <UploadCloud size={18} /> },
     { label: 'Manage Subjects',  path: '/admin/subjects',     icon: <BookOpen size={18} /> },
+    { label: 'Attendance',       path: '/admin/attendance',   icon: <CalendarCheck size={18} /> },
+    { label: 'Manage Fees',      path: '/admin/fees',         icon: <DollarSign size={18} /> },
+    { label: 'Profile',          path: '/admin/profile',      icon: <User size={18} />   },
+    { label: 'Manage Staff',       path: '/admin/staff',        icon: <Users size={18} />  }
   ];
 
   const currentPage = navItems.find(i => i.path === location.pathname);
@@ -65,8 +98,14 @@ export default function AdminLayout({ children }) {
         {/* User / Logout */}
         <div className="admin-sidebar-footer">
           <div className="admin-sidebar-user" onClick={handleLogout} title="Logout">
-            <div className="admin-sidebar-avatar">A</div>
-            <span className="admin-sidebar-user-name">Administrator</span>
+            <div className="admin-sidebar-avatar">
+              {user.avatar ? (
+                <img src={user.avatar} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+              ) : (
+                (user.name || 'A')[0].toUpperCase()
+              )}
+            </div>
+            <span className="admin-sidebar-user-name">{user.name || 'Administrator'}</span>
             <LogOut size={15} className="admin-sidebar-logout" />
           </div>
         </div>
@@ -88,10 +127,15 @@ export default function AdminLayout({ children }) {
 
           <div className="admin-header-right">
             <div>
-              <p style={{ fontSize: '0.8125rem', fontWeight: 600, textAlign: 'right' }}>Administrator</p>
-              <p style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', textAlign: 'right' }}>admin@eklavya.edu</p>
+              <p style={{ fontSize: '0.8125rem', fontWeight: 600, textAlign: 'right' }}>{user.name || 'Administrator'}</p>
             </div>
-            <div className="admin-header-avatar">A</div>
+            <div className="admin-header-avatar" onClick={() => navigate('/admin/profile')}>
+              {user.avatar ? (
+                <img src={user.avatar} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+              ) : (
+                (user.name || 'A')[0].toUpperCase()
+              )}
+            </div>
           </div>
         </header>
 

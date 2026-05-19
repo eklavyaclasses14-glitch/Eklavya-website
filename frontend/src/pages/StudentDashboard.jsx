@@ -1,25 +1,25 @@
 import { useState, useEffect } from 'react';
 import StudentLayout from '../components/StudentLayout';
-import { BookOpen, Clock, FileText, File, Image, Sun } from 'lucide-react';
+import { BookOpen, Clock, FileText, File, Image, Sun, CalendarCheck, DollarSign } from 'lucide-react';
 import { apiFetch } from '../utils/apiFetch';
 import '../styles/StudentDashboard.css';
 
-const DOT_COLORS = ['dot-0','dot-1','dot-2','dot-3','dot-4'];
+const DOT_COLORS = ['dot-0', 'dot-1', 'dot-2', 'dot-3', 'dot-4'];
 
 export default function StudentDashboard() {
-  const [data, setData]       = useState(null);
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState('');
+  const [error, setError] = useState('');
 
-  const user      = JSON.parse(localStorage.getItem('user') || '{}');
-  const student   = user?.user || {};
-  const studentId = student?._id;
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const student = user?.user || {};
+  const studentId = student?._id || student?.id || user?.id || user?._id;
 
   useEffect(() => {
     if (!studentId) { setLoading(false); return; }
     apiFetch(`http://localhost:5000/api/student/${studentId}/dashboard`)
       .then(res => { if (!res.ok) throw new Error('Failed to load'); return res.json(); })
-      .then(d  => { setData(d); setLoading(false); })
+      .then(d => { setData(d); setLoading(false); })
       .catch(e => { setError(e.message); setLoading(false); });
   }, [studentId]);
 
@@ -37,6 +37,11 @@ export default function StudentDashboard() {
     </StudentLayout>
   );
 
+  // Compute overall %
+  const attendance = data?.attendance || [];
+  const overall = attendance.length
+    ? Math.round(attendance.reduce((s, a) => s + a.percentage, 0) / attendance.length)
+    : 0;
 
   return (
     <StudentLayout>
@@ -66,6 +71,22 @@ export default function StudentDashboard() {
           <div>
             <div className="sd-stat-value">Sem {data?.student?.semester || '—'}</div>
             <div className="sd-stat-label">Current</div>
+          </div>
+        </div>
+
+        <div className="sd-stat-card emerald">
+          <div className="sd-stat-icon emerald"><CalendarCheck size={22} /></div>
+          <div>
+            <div className="sd-stat-value">{overall}%</div>
+            <div className="sd-stat-label">Attendance</div>
+          </div>
+        </div>
+
+        <div className="sd-stat-card sky">
+          <div className="sd-stat-icon sky"><DollarSign size={22} /></div>
+          <div>
+            <div className="sd-stat-value">${data?.pendingFees ?? 0}</div>
+            <div className="sd-stat-label">Pending Fees</div>
           </div>
         </div>
       </div>

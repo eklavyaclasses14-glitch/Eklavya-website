@@ -30,6 +30,10 @@ const VALIDATORS = {
     test: (v) => v.length >= 6,
     msg: 'Password must be at least 6 characters',
   },
+  email: {
+  test: (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
+  msg: 'Enter a valid email address',
+  },
 };
 
 export default function AdminAddStudent() {
@@ -38,14 +42,15 @@ export default function AdminAddStudent() {
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
   const [formData, setFormData] = useState({
-    name: '',
-    user_id: '',
-    department: 'Computer Engineering',
-    semester: 1,
-    password: '',
-    student_contact: '',
-    parent_contact: '',
-  });
+  name: '',
+  email: '', // ✅ ADD THIS
+  user_id: '',
+  department: 'Computer Engineering',
+  semester: 1,
+  password: '',
+  student_contact: '',
+  parent_contact: '',
+});
 
   const [submitting, setSubmitting] = useState(false);
 
@@ -93,7 +98,13 @@ export default function AdminAddStudent() {
     });
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      setTouched({ name: true, student_contact: true, parent_contact: true, password: true });
+      setTouched({
+  name: true,
+  email: true, // ✅ ADD
+  student_contact: true,
+  parent_contact: true,
+  password: true
+});
       return;
     }
 
@@ -173,6 +184,32 @@ export default function AdminAddStudent() {
                   <span className="admin-input-hint">Alphabets and spaces only</span>
                 )}
               </div>
+
+              {/* Email */}
+<div className="admin-field-group">
+  <label className="admin-field-label">
+    <User size={13} />
+    Email <span className="admin-field-label-required">*</span>
+  </label>
+  <input
+    type="email"
+    name="email"
+    className={fieldClass('email')}
+    placeholder="e.g. student@email.com"
+    value={formData.email}
+    onChange={handleChange}
+    onBlur={handleBlur}
+    required
+    autoComplete="off"
+  />
+  {errors.email && touched.email ? (
+    <span className="admin-field-error">
+      <AlertCircle size={12} /> {errors.email}
+    </span>
+  ) : (
+    <span className="admin-input-hint">Used for login</span>
+  )}
+</div>
 
               {/* User ID + Password */}
               <div className="admin-field-row">
@@ -300,9 +337,21 @@ export default function AdminAddStudent() {
                 <button type="button" className="admin-cancel-btn" onClick={() => navigate('/admin/dashboard')}>
                   Cancel
                 </button>
-                <button type="submit" className="admin-btn-primary" disabled={submitting || submitted}>
-                  {submitted ? <><CheckCircle2 size={16} /> Student Added!</> : (submitting ? 'Adding...' : 'Add Student')}
-                </button>
+                <button
+  type="submit"
+  className="admin-btn-primary"
+  disabled={submitting || submitted}
+>
+  {submitted ? (
+    <>
+      <CheckCircle2 size={16} /> Student Added!
+    </>
+  ) : submitting ? (
+    'Adding...'
+  ) : (
+    'Add Student'
+  )}
+</button>
               </div>
             </form>
           </div>

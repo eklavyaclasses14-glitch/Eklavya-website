@@ -57,7 +57,9 @@
 }
 
 @media (max-width: 640px) {
-  .amd-students-stats { grid-template-columns: repeat(2, 1fr); }
+  .amd-students-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .amd-stat-card {
@@ -72,14 +74,27 @@
 .amd-stat-card::before {
   content: '';
   position: absolute;
-  top: 0; left: 0; right: 0;
+  top: 0;
+  left: 0;
+  right: 0;
   height: 3px;
 }
 
-.amd-stat-card.indigo::before { background: linear-gradient(90deg, var(--color-primary), var(--color-primary-hover)); }
-.amd-stat-card.sky::before    { background: linear-gradient(90deg, var(--color-primary), var(--color-primary-hover)); }
-.amd-stat-card.emerald::before{ background: linear-gradient(90deg, #10b981, #34d399); }
-.amd-stat-card.amber::before  { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+.amd-stat-card.indigo::before {
+  background: linear-gradient(90deg, var(--color-primary), var(--color-primary-hover));
+}
+
+.amd-stat-card.sky::before {
+  background: linear-gradient(90deg, #0ea5e9, #38bdf8);
+}
+
+.amd-stat-card.emerald::before {
+  background: linear-gradient(90deg, #10b981, #34d399);
+}
+
+.amd-stat-card.amber::before {
+  background: linear-gradient(90deg, #f59e0b, #fbbf24);
+}
 
 .amd-stat-value {
   font-size: 1.625rem;
@@ -123,7 +138,7 @@
 }
 
 .amd-count-pill {
-  background: rgba(74, 92, 106,0.08);
+  background: rgba(74, 92, 106, 0.08);
   color: var(--color-primary);
   font-size: 0.72rem;
   font-weight: 700;
@@ -300,40 +315,52 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  gap: 5px;
+
+  padding: 8px 20px;
   border-radius: var(--radius-sm);
-  border: 1.5px solid var(--color-border);
-  color: var(--color-text-muted);
-  background: transparent;
+
+  border: 1.5px solid #bfdbfe;
+  background: #eff6ff;
+  color: #2563eb;
+
   cursor: pointer;
   transition: all 0.16s ease;
 }
 
 .amd-btn-edit:hover {
-  background: rgba(74, 92, 106, 0.08);
-  border-color: var(--color-primary-hover);
-  color: var(--color-primary);
+  background: #2563eb;
+  border-color: #2563eb;
+  color: white;
+
+  transform: translateY(-1px);
 }
+
+
 
 .amd-btn-delete {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  gap: 5px;
+
+  padding: 8px 20px;
   border-radius: var(--radius-sm);
-  border: 1.5px solid var(--color-border);
-  color: var(--color-text-muted);
-  background: transparent;
+
+  border: 1.5px solid #fecaca;
+  background: #fef2f2;
+  color: #ef4444;
+
   cursor: pointer;
   transition: all 0.16s ease;
 }
 
 .amd-btn-delete:hover {
-  background: #fef2f2;
-  border-color: #fecaca;
-  color: #ef4444;
+  background: #ef4444;
+  border-color: #ef4444;
+  color: white;
+
+  transform: translateY(-1px);
 }
 
 .amd-empty {
@@ -358,8 +385,13 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .amd-modal {
@@ -373,8 +405,15 @@
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .amd-modal-header {
@@ -396,7 +435,7 @@
 
 .amd-modal-close {
   color: var(--color-text-muted);
-  padding: 0.25rem;
+  padding: 1rem;
   cursor: pointer;
   transition: color 0.16s ease;
   border-radius: var(--radius-sm);
@@ -526,19 +565,96 @@
 }
 
 @keyframes slideUpToast {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Global Filters Bar */
+.amd-global-filters {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  display: flex;
+  gap: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Pagination */
+.amd-pagination {
+  padding: 1.5rem;
+  border-top: 1px solid var(--color-border);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.25rem;
+  background: var(--color-background-soft);
+}
+
+.amd-page-btn {
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.amd-page-btn:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-secondary);
+  transform: translateY(-1px);
+}
+
+.amd-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: grayscale(1);
+}
+
+.amd-filter-reset {
+  padding: 0.4rem 0.8rem;
+  border-radius: var(--radius-sm);
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.18);
+  color: #f87171;
+
+  transition: all 0.22s ease;
+}
+
+.amd-filter-reset:hover {
+  background: #ef4444;
+  border-color: #ef4444;
+  color: #ffffff;
+
+  box-shadow: 0 8px 22px rgba(239, 68, 68, 0.28);
 }
 
 /* Responsive */
 @media (max-width: 768px) {
+
   .amd-table-header,
   .amd-student-row {
     grid-template-columns: 1fr 80px 70px;
   }
 
   .amd-table-header span:nth-child(n+4),
-  .amd-student-row > *:nth-child(n+4) {
+  .amd-student-row>*:nth-child(n+4) {
     display: none;
   }
 

@@ -1,13 +1,43 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
-import Login              from './pages/Login';
-import StudentDashboard   from './pages/StudentDashboard';
-import StudentNotes       from './pages/StudentNotes';
-import AdminDashboard     from './pages/AdminDashboard';
-import AdminAddStudent    from './pages/AdminAddStudent';
-import AdminUploadDocument from './pages/AdminUploadDocument';
-import AdminManageSubjects  from './pages/AdminManageSubjects';
-import AdminManageStudents  from './pages/AdminManageStudents';
-import AdminManageDocuments from './pages/AdminManageDocuments';
+import { lazy, Suspense } from 'react';
+import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import ProtectedRoute from './components/ProtectedRoute';
+
+// Lazy load all pages
+const Landing             = lazy(() => import('./pages/Landing'));
+const Login               = lazy(() => import('./pages/Login'));
+const StudentDashboard    = lazy(() => import('./pages/StudentDashboard'));
+const StudentNotes        = lazy(() => import('./pages/StudentNotes'));
+const AdminDashboard      = lazy(() => import('./pages/AdminDashboard'));
+const AdminAddStudent     = lazy(() => import('./pages/AdminAddStudent'));
+const AdminUploadDocument  = lazy(() => import('./pages/AdminUploadDocument'));
+const AdminManageSubjects   = lazy(() => import('./pages/AdminManageSubjects'));
+const AdminManageStudents   = lazy(() => import('./pages/AdminManageStudents'));
+const AdminManageDocuments  = lazy(() => import('./pages/AdminManageDocuments'));
+const AdminAttendance       = lazy(() => import('./pages/AdminAttendance'));
+const AdminProfile          = lazy(() => import('./pages/AdminProfile'));
+const AdminAddStaff         = lazy(() => import('./pages/AdminAddStaff'));
+const StaffDashboard       = lazy(() => import('./pages/StaffDashboard'));
+const StaffLayout          = lazy(() => import('./components/StaffLayout'));
+const StaffAttendance      = lazy(() => import('./pages/StaffAttendance'));
+const AdminFees            = lazy(() => import('./pages/AdminFees'));
+const StudentFees          = lazy(() => import('./pages/StudentFees'));
+const StudentAttendance    = lazy(() => import('./pages/StudentAttendance'));
+const StudentProfile       = lazy(() => import('./pages/StudentProfile'));
+
+function PageLoader() {
+  return (
+    <div style={{
+      height: '100vh', width: '100%', display: 'flex', alignItems: 'center',
+      justifyContent: 'center', background: 'var(--color-background)',
+      flexDirection: 'column', gap: '1.5rem'
+    }}>
+      <div className="sd-spinner" style={{ width: '40px', height: '40px' }}></div>
+      <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', fontWeight: 500 }}>
+        Loading experience...
+      </p>
+    </div>
+  );
+}
 
 function NotFound() {
   const navigate = useNavigate();
@@ -42,24 +72,44 @@ function NotFound() {
 function App() {
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      <Routes>
-        <Route path="/"    element={<Navigate to="/login" replace />} />
-        <Route path="/login" element={<Login />} />
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route path="/"    element={<Landing />} />
+          <Route path="/login" element={<Login />} />
 
-        {/* Student */}
-        <Route path="/student/dashboard"  element={<StudentDashboard />} />
-        <Route path="/student/notes"      element={<StudentNotes />} />
+          {/* Student Protected Routes */}
+          <Route element={<ProtectedRoute allowedRoles={['student']} />}>
+            <Route path="/student/dashboard"  element={<StudentDashboard />} />
+            <Route path="/student/notes"      element={<StudentNotes />} />
+            <Route path="/student/attendance" element={<StudentAttendance />} />
+            <Route path="/student/fees"       element={<StudentFees />} />
+            <Route path="/student/profile"    element={<StudentProfile />} />
+          </Route>
 
-        {/* Admin */}
-        <Route path="/admin/dashboard"     element={<AdminDashboard />} />
-        <Route path="/admin/students"       element={<AdminManageStudents />} />
-        <Route path="/admin/students/new"  element={<AdminAddStudent />} />
-        <Route path="/admin/notes"         element={<AdminManageDocuments />} />
-        <Route path="/admin/notes/upload"  element={<AdminUploadDocument />} />
-        <Route path="/admin/subjects"       element={<AdminManageSubjects />} />
+          {/* Staff Protected Routes */}
+          <Route element={<ProtectedRoute allowedRoles={['admin', 'staff']} />}>
+            <Route path="/staff/dashboard"    element={<StaffDashboard />} />
+            <Route path="/staff/layout"        element={<StaffLayout />} />
+            <Route path="/staff/attendance"   element={<StaffAttendance />} />
+          </Route>
 
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+          {/* Admin Protected Routes */}
+          <Route element={<ProtectedRoute allowedRoles={['admin', 'staff']} />}>
+            <Route path="/admin/dashboard"     element={<AdminDashboard />} />
+            <Route path="/admin/students"       element={<AdminManageStudents />} />
+            <Route path="/admin/students/new"  element={<AdminAddStudent />} />
+            <Route path="/admin/notes"         element={<AdminManageDocuments />} />
+            <Route path="/admin/notes/upload"  element={<AdminUploadDocument />} />
+            <Route path="/admin/subjects"       element={<AdminManageSubjects />} />
+            <Route path="/admin/attendance"    element={<AdminAttendance />} />
+            <Route path="/admin/fees"          element={<AdminFees />} />
+            <Route path="/admin/profile"       element={<AdminProfile />} />
+            <Route path="/admin/staff"         element={<AdminAddStaff />} />
+          </Route>
+
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
     </Router>
   );
 }

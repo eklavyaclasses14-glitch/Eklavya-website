@@ -1,31 +1,44 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
-import { Users, BookOpen, UploadCloud, UserPlus, GraduationCap, FileText } from 'lucide-react';
+import { Users, BookOpen, UploadCloud, UserPlus, GraduationCap, FileText, CalendarCheck, DollarSign } from 'lucide-react';
 import { apiFetch } from '../utils/apiFetch';
 import '../styles/AdminDashboard.css';
 
 const AVATAR_COLORS = ['avatar-color-0', 'avatar-color-1', 'avatar-color-2', 'avatar-color-3', 'avatar-color-4'];
-const DOT_COLORS    = ['subject-dot-color-0', 'subject-dot-color-1', 'subject-dot-color-2', 'subject-dot-color-3', 'subject-dot-color-4'];
+const DOT_COLORS = ['subject-dot-color-0', 'subject-dot-color-1', 'subject-dot-color-2', 'subject-dot-color-3', 'subject-dot-color-4'];
 
 export default function AdminDashboard() {
   const [students, setStudents] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const navigate = useNavigate();
 
+  const [totalStudents, setTotalStudents] = useState(0);
+
   useEffect(() => {
-    Promise.all([
-      apiFetch('http://localhost:5000/api/admin/students').then(r => r.json()),
-      apiFetch('http://localhost:5000/api/admin/subjects').then(r => r.json()),
-    ]).then(([studentsData, subjectsData]) => {
-      setStudents(studentsData);
-      setSubjects(subjectsData);
-    }).catch(console.error);
+    const fetchData = async () => {
+      try {
+        const [resStudents, resSubjects] = await Promise.all([
+          apiFetch('api/admin/students?limit=6'), // Just need a few for the table
+          apiFetch('api/admin/subjects'),
+        ]);
+        
+        const studentsData = await resStudents.json();
+        const subjectsData = await resSubjects.json();
+        
+        setStudents(studentsData.students || []);
+        setTotalStudents(studentsData.total || 0);
+        setSubjects(subjectsData);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    fetchData();
   }, []);
 
   // Derive quick stats
   const departments = [...new Set(students.map(s => s.department))];
-  const totalNotes  = subjects.length * 2; // mock estimate
+  const totalNotes = subjects.length * 2; // mock estimate
 
   return (
     <AdminLayout>
@@ -42,7 +55,7 @@ export default function AdminDashboard() {
             <Users size={20} />
           </div>
           <div>
-            <div className="admin-stat-value">{students.length}</div>
+            <div className="admin-stat-value">{totalStudents}</div>
             <div className="admin-stat-label">Total Students</div>
           </div>
         </div>
@@ -95,6 +108,22 @@ export default function AdminDashboard() {
           <div className="admin-quick-card-title">Upload Material</div>
           <div className="admin-quick-card-desc">Upload PDFs or images as study notes linked via Google Drive.</div>
         </button>
+
+        <button className="admin-quick-card" onClick={() => navigate('/admin/attendance')}>
+          <div className="admin-quick-card-icon stat-icon-emerald">
+            <CalendarCheck size={22} />
+          </div>
+          <div className="admin-quick-card-title">Attendance</div>
+          <div className="admin-quick-card-desc">Mark and manage student attendance records.</div>
+        </button>
+
+        <button className="admin-quick-card" onClick={() => navigate('/admin/fees')}>
+          <div className="admin-quick-card-icon stat-icon-amber">
+            <DollarSign size={22} />
+          </div>
+          <div className="admin-quick-card-title">Fees Management</div>
+          <div className="admin-quick-card-desc">Track student fee payments and pending dues.</div>
+        </button>
       </div>
 
       {/* ── Content Grid ── */}
@@ -142,7 +171,7 @@ export default function AdminDashboard() {
               <BookOpen size={17} style={{ color: '#f59e0b' }} />
               Subjects
             </span>
-            <button className="admin-section-action-btn">
+            <button className="admin-section-action-btn" onClick={() => navigate('/admin/subjects')}>
               + Add
             </button>
           </div>

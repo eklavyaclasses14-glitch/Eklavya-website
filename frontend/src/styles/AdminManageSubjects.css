@@ -62,12 +62,36 @@
 }
 
 /* ── Subjects table card ── */
+.ams-table-scroll {
+  max-height: 600px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.ams-table-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.ams-table-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ams-table-scroll::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.35);
+  border-radius: 999px;
+}
+
+.ams-table-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.55);
+}
+
 .ams-table-card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   overflow: hidden;
 }
+
 
 .ams-table-toolbar {
   display: flex;
@@ -176,6 +200,9 @@
 }
 
 .ams-row-header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
   background: var(--color-background);
   font-size: 0.72rem;
   font-weight: 700;
@@ -215,6 +242,9 @@
   background: rgba(74, 92, 106, 0.08);
   color: var(--color-primary);
   white-space: nowrap;
+  display: inline-flex;
+  /* or inline-block */
+  width: fit-content;
 }
 
 .ams-sem-badge {
@@ -379,7 +409,7 @@
   transition: all 0.16s ease;
 }
 
-.ams-sem-option input:checked + .ams-sem-label {
+.ams-sem-option input:checked+.ams-sem-label {
   border-color: var(--color-primary);
   background: rgba(74, 92, 106, 0.08);
   color: var(--color-primary);
@@ -468,13 +498,72 @@
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Dot colors */
-.dot-indigo  { background: var(--color-primary); }
-.dot-sky     { background: var(--color-primary); }
-.dot-emerald { background: #10b981; }
-.dot-amber   { background: #f59e0b; }
-.dot-rose    { background: #f43f5e; }
+.dot-indigo {
+  background: var(--color-primary);
+}
+
+.dot-sky {
+  background: var(--color-primary);
+}
+
+.dot-emerald {
+  background: #10b981;
+}
+
+.dot-amber {
+  background: #f59e0b;
+}
+
+.dot-rose {
+  background: #f43f5e;
+}
+
+.ams-sem-filter {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+
+  overflow-x: auto;
+}
+
+.ams-sem-filter-btn {
+  padding: 0.35rem 0.85rem;
+  color: var(--color-text-muted);
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+
+  background: var(--color-surface);
+
+  font-size: 0.76rem;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  white-space: nowrap;
+
+  transition: all 0.18s ease;
+}
+
+.ams-sem-filter-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.ams-sem-filter-btn.active {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}

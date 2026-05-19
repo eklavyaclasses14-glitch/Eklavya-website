@@ -4,18 +4,21 @@ const bcrypt   = require('bcryptjs');
 const StudentSchema = new mongoose.Schema({
   name:            { type: String, required: true, trim: true },
   user_id:         { type: String, required: true, unique: true, trim: true },
-  enrollment_no:   { type: String, trim: true },   // kept for backward compat
-  password:        { type: String, required: true },
-  department:      { type: String, default: 'Computer Engineering' },
-  semester:        { type: Number, default: 1 },
+  email:           { type: String, required: true, unique: true, lowercase: true, match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email'] },   // kept for backward compat
+  password:        { type: String, required: true, select: false },
+  department:      { type: String, default: 'Computer Engineering', trim: true, index: true },
+  semester:        { type: Number, default: 1, index: true },
   student_contact: { type: String, default: '' },
   parent_contact:  { type: String, default: '' },
+  resetPasswordToken: { type: String, select: false },
+  resetPasswordExpire: { type: Date, select: false },
 }, { timestamps: true });
 
 // Hash password before saving
 StudentSchema.pre('save', async function () {
   if (!this.isModified('password')) return;
-  this.password = await bcrypt.hash(this.password, 10);
+  const salt = await bcrypt.genSalt(12);
+  this.password = await bcrypt.hash(this.password, salt);
 });
 
 // Compare plain password with hash

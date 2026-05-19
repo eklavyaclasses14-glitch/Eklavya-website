@@ -181,6 +181,111 @@
   color: white;
 }
 
+/* ── Global Filter Bar ── */
+.sn-global-filters {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.25rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.sn-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.sn-filter-group label {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.sn-filter-group select {
+  padding: 0.5rem 0.875rem;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-background);
+  color: var(--color-text);
+  font-size: 0.8125rem;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+  min-width: 160px;
+}
+
+.sn-filter-group select:focus {
+  border-color: var(--color-primary);
+}
+
+.sn-reset-btn {
+  background: none;
+  border: none;
+  color: #ef4444;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-sm);
+  transition: background 0.2s ease;
+}
+
+.sn-reset-btn:hover {
+  background: rgba(239, 68, 68, 0.08);
+}
+
+/* ── Pagination ── */
+.sn-pagination {
+  margin-top: 2.5rem;
+  padding: 1.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.sn-page-btn {
+  padding: 0.55rem 1.25rem;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sn-page-btn:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-secondary);
+  transform: translateY(-1px);
+}
+
+.sn-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.sn-page-info {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
 /* Empty state */
 .sn-empty {
   grid-column: 1 / -1;
