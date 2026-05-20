@@ -6,14 +6,17 @@ export const apiFetch = async (url, options = {}) => {
   // Resolve relative URLs automatically
   const finalUrl = url.startsWith('http') ? url : `${BASE_URL.replace(/\/$/, '')}/${url.replace(/^\//, '')}`;
 
-  const headers = {
-    'Content-Type': 'application/json',
-    ...(options.headers || {}),
-  };
+const headers = {
+  ...(options.headers || {}),
+};
 
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
+if (!(options.body instanceof FormData)) {
+  headers['Content-Type'] = 'application/json';
+}
+
+if (token) {
+  headers['Authorization'] = Bearer ${token};
+}
 
   const response = await fetch(finalUrl, {
     ...options,
