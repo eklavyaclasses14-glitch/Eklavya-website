@@ -95,6 +95,7 @@ export default function AdminUploadDocument() {
       data.append('title', formData.title);
       data.append('label', formData.label);
       data.append('subject_id', formData.subject_id);
+      console.log('subject_id', formData.subject_id);
       data.append('file_type', formData.file_type);
 
       const token = localStorage.getItem('token');
@@ -206,15 +207,20 @@ export default function AdminUploadDocument() {
             {/* Subject */}
             <div className="admin-field-group">
               <label>Subject</label>
-              <select name="subject_id" className="admin-input" value={formData.subject_id} onChange={handleChange}>
-                {filteredSubjects.length === 0 ? (
-                  <option value="">No subjects available</option>
-                ) : (
-                  filteredSubjects.map(sub => (
-                    <option key={sub._id} value={sub._id}>{sub.subject_name}</option>
-                  ))
-                )}
-              </select>
+              <select
+  name="subject_id"
+  className="admin-input"
+  value={formData.subject_id}
+  onChange={handleChange}
+>
+  <option value="">Select Subject</option>
+
+  {filteredSubjects.map(sub => (
+    <option key={sub._id} value={sub._id}>
+      {sub.subject_name}
+    </option>
+  ))}
+</select>
             </div>
 
             {/* File Picker */}
