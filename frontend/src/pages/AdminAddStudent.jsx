@@ -118,7 +118,7 @@ export default function AdminAddStudent() {
 
     setSubmitting(true);
     try {
-      const res = await apiFetch('http://localhost:5000/api/admin/students', {
+      const res = await apiFetch('/api/admin/students', {
         method: 'POST',
         body: JSON.stringify(formData),
       });
