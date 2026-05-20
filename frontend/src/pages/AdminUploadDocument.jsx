@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
 import { ArrowLeft, UploadCloud, File, Image, CheckCircle2, AlertCircle, X } from 'lucide-react';
 import { apiFetch } from '../utils/apiFetch';
-
+import "../styles/AdminUploadDocument.css";
 const DEPARTMENTS = [
   'Automation & Robotics',
   'Automobile Engineering',
