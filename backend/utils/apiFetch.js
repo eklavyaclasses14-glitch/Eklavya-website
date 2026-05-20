@@ -26,11 +26,14 @@ const getToken = () => {
 export async function apiFetch(url, options = {}) {
   const token = getToken();
 
-  const headers = {
-    'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...(options.headers ?? {}),
-  };
+const headers = {
+  ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  ...(options.headers ?? {}),
+};
+
+if (!(options.body instanceof FormData)) {
+  headers['Content-Type'] = 'application/json';
+}
 
   const response = await fetch(url, { ...options, headers });
 
