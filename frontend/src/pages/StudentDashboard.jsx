@@ -17,7 +17,7 @@ export default function StudentDashboard() {
 
   useEffect(() => {
     if (!studentId) { setLoading(false); return; }
-    apiFetch(`http://localhost:5000/api/student/${studentId}/dashboard`)
+    apiFetch(`/api/student/${studentId}/dashboard`)
       .then(res => { if (!res.ok) throw new Error('Failed to load'); return res.json(); })
       .then(d => { setData(d); setLoading(false); })
       .catch(e => { setError(e.message); setLoading(false); });
