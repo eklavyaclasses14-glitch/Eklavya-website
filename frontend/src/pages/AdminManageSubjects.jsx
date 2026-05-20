@@ -15,10 +15,18 @@ import { apiFetch } from "../utils/apiFetch";
 import "../styles/AdminManageSubjects.css";
 
 const DEPARTMENTS = [
-  "Computer Engineering",
-  "Mechanical Engineering",
-  "Civil Engineering",
-  "Electrical Engineering",
+  'Automation & Robotics',
+  'Automobile Engineering',
+  'Civil Engineering',
+  'Electrical Engineering',
+  'Computer Engineering',
+  'Information Technology',
+  'Mechanical Engineering',
+  'Mechanical Engineering (CAD/CAM)',
+  'Information & Communication Technology',
+  'Metallurgy',
+  'Power Electronics',
+  'Architecture',
 ];
 const semesters = ["All", 1, 2, 3, 4, 5, 6, 7, 8];
 
@@ -31,10 +39,18 @@ const DOT_CLASSES = [
 ];
 
 const DEPT_SHORT = {
-  "Computer Engineering": "CSE",
+ "Computer Engineering": "CSE",
   "Mechanical Engineering": "MECH",
   "Civil Engineering": "CIVIL",
   "Electrical Engineering": "EEE",
+  "Automation & Robotics": "AUTO  & ROBOT",
+  "Automobile Engineering": "AUTO",
+  "Information Technology": "IT",
+  "Mechanical Engineering (CAD/CAM)": "MECH( CAD/CAM )",
+  "Information & Communication Technology": "ICT",
+  "Metallurgy": "MET",
+  "Power Electronics": "PE",
+  "Architecture": "ARCH"
 };
 
 function Toast({ message, onClose }) {
