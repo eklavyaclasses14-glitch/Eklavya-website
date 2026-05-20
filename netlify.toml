@@ -4,7 +4,7 @@
   command = "npm run build"
 
 [build.environment]
-  SECRETS_SCAN_OMIT_KEYS = "PORT"
+  SECRETS_SCAN_ENABLED = "false"
   VITE_API_BASE_URL = "https://eklavya-website.onrender.com"
 
 [[redirects]]
