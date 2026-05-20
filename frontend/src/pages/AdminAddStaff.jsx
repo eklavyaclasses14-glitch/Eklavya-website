@@ -37,7 +37,7 @@ export default function AdminAddStaff() {
   // ─── FETCH STAFF ─────────────────
   const fetchStaff = async () => {
     try {
-      const res = await apiFetch("http://localhost:5000/api/admin/staff");
+      const res = await apiFetch("/api/admin/staff");
       if (!res.ok) throw new Error("Failed to fetch staff");
       const data = await res.json();
       setStaffList(data);
