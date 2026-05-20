@@ -103,8 +103,8 @@ function EditModal({ note, onClose, onSave }) {
         data.append("file", selectedFile);
       }
 
-      const res = await fetch(
-        `http://localhost:5000/api/admin/notes/${note._id}`,
+      const res = await apiFetch(
+        `/api/admin/notes/${note._id}`,
         {
           method: "PUT",
           headers: { Authorization: `Bearer ${token}` },
