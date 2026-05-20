@@ -214,7 +214,7 @@ function EditModal({ student, onClose, onSave, setToast }) {
     setSaving(true);
     try {
       const res = await apiFetch(
-        `http://localhost:5000/api/admin/students/${student._id}`,
+        `/api/admin/students/${student._id}`,
         {
           method: "PUT",
           body: JSON.stringify(form),
@@ -537,7 +537,7 @@ export default function AdminManageStudents() {
     const { id, name } = deleteConfirm;
     setDeleteConfirm(null);
     try {
-      await apiFetch(`http://localhost:5000/api/admin/students/${id}`, {
+      await apiFetch(`/api/admin/students/${id}`, {
         method: "DELETE",
       });
       setStudents((prev) => prev.filter((s) => s._id !== id));
