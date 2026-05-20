@@ -182,11 +182,17 @@ export default function AdminFees() {
 
   // ── bulk add ─────────────────────────────────────────────────────────────────
 
-  const filteredStudents = students.filter(
-    (s) =>
-      s.name.toLowerCase().includes(search.toLowerCase()) ||
-      (s.user_id ?? "").toLowerCase().includes(search.toLowerCase()),
-  );
+const filteredStudents = students.filter((s) => {
+  const matchesSearch =
+    s.name.toLowerCase().includes(search.toLowerCase()) ||
+    (s.user_id ?? "").toLowerCase().includes(search.toLowerCase());
+
+  const matchesDepartment =
+    !bulkForm.department ||
+    s.department?.toLowerCase() === bulkForm.department.toLowerCase();
+
+  return matchesSearch && matchesDepartment;
+});
 
   const allVisible =
     filteredStudents.length > 0 &&
@@ -750,16 +756,22 @@ export default function AdminFees() {
                       Fee Details (applied to all selected)
                     </p>
                     {/* ── Updated Bulk Department Field ── */}
-                    <FormField label="Department">
-                      <input
-                        type="text"
-                        className="admin-input"
-                        placeholder="e.g. Computer Science"
-                        value={bulkForm.department} // Changed from formData to bulkForm
-                        onChange={setBulkField("department")} // Added onChange to make it functional
-                        required
-                      />
-                    </FormField>
+                  <FormField label="Department">
+  <select
+    className="admin-input"
+    value={bulkForm.department}
+    onChange={setBulkField("department")}
+    required
+  >
+    <option value="">-- Select Department --</option>
+
+    {[...new Set(students.map((s) => s.department))].map((dept) => (
+      <option key={dept} value={dept}>
+        {dept}
+      </option>
+    ))}
+  </select>
+</FormField>
 
                     <div className="admin-field-row">
                       <FormField label="Amount (₹)">
