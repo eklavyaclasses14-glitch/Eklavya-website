@@ -39,7 +39,7 @@ export default function AdminUploadDocument() {
   });
 
   useEffect(() => {
-    apiFetch('http://localhost:5000/api/admin/subjects')
+    apiFetch('/api/admin/subjects')
       .then(res => res.json())
       .then(data => {
         setSubjects(data);
@@ -100,7 +100,7 @@ export default function AdminUploadDocument() {
       const token = localStorage.getItem('token');
       setProgress(40);
 
-      const res = await fetch('http://localhost:5000/api/admin/notes', {
+      const res = await apiFetch('/api/admin/notes', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: data,
