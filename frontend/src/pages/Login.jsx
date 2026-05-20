@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogIn, User, Lock, AlertCircle, Eye, EyeOff } from 'lucide-react';
 import '../styles/Login.css';
-import {apiFetch} from '../utils';
+import {apiFetch} from '../utils/apiFetch.js';
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
