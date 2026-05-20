@@ -95,7 +95,6 @@ export default function AdminUploadDocument() {
       data.append('title', formData.title);
       data.append('label', formData.label);
       data.append('subject_id', formData.subject_id);
-      console.log('subject_id', formData.subject_id);
       data.append('file_type', formData.file_type);
 
       const token = localStorage.getItem('token');
