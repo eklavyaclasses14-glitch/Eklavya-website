@@ -45,8 +45,8 @@ export default function StaffAttendance() {
   // ─── INITIAL LOAD ────────────────────────────────────────────────────────────
   useEffect(() => {
     Promise.all([
-      apiFetch("http://localhost:5000/api/admin/students").then((r) => r.json()),
-      apiFetch("http://localhost:5000/api/admin/subjects").then((r) => r.json()),
+      apiFetch("/api/admin/students").then((r) => r.json()),
+      apiFetch("/api/admin/subjects").then((r) => r.json()),
     ])
       .then(([studentsData, subjectsData]) => {
         setStudents(studentsData);
@@ -75,7 +75,7 @@ export default function StaffAttendance() {
     let cancelled = false;
 
     apiFetch(
-      `http://localhost:5000/api/admin/attendance?student_id=${fetchStudent}&subject_id=${fetchSubject}`
+      `/api/admin/attendance?student_id=${fetchStudent}&subject_id=${fetchSubject}`
     )
       .then((r) => r.json())
       .then((records) => {
@@ -131,7 +131,7 @@ export default function StaffAttendance() {
     try {
       await Promise.all(
         Object.entries(attendance).map(([studentId, status]) =>
-          apiFetch("http://localhost:5000/api/admin/attendance", {
+          apiFetch("/api/admin/attendance", {
             method: "POST",
             body: JSON.stringify({
               student_id: studentId,
