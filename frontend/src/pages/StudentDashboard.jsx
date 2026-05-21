@@ -110,19 +110,37 @@ export default function StudentDashboard() {
         {/* Recent Notes */}
         <div className="sd-section-card">
           <div className="sd-section-header">
-            <FileText size={16} style={{ color: 'var(--color-primary)' }} /> Recent Notes
+            <FileText size={16} style={{ color: 'var(--color-primary)' }} />
+            Recent Notes
           </div>
-          {data?.recentNotes?.length > 0 ? data.recentNotes.map(note => (
-            <div key={note._id} className="sd-note-row">
-              <div className={`sd-note-icon ${note.file_type === 'pdf' ? 'pdf' : 'image'}`}>
-                {note.file_type === 'pdf' ? <File size={18} /> : <Image size={18} />}
+          {data?.recentNotes?.length > 0 ? (
+            data.recentNotes.slice(0, 6).map(note => (
+              <div 
+                key={note._id} 
+                className="sd-note-row"
+                onClick={() => note.fileUrl && window.open(note.fileUrl, '_blank')}
+                style={{ cursor: 'pointer' }}
+                title="Click to view document"
+              >
+                <div className={`sd-note-icon ${note.file_type === 'pdf' ? 'pdf' : 'image'}`}>
+                  {note.file_type === 'pdf'
+                    ? <File size={18} />
+                    : <Image size={18} />
+                  }
+                </div>
+
+                <div>
+                  <div className="sd-note-title">{note.title}</div>
+
+                  <span className={`sd-note-badge ${note.file_type === 'pdf' ? 'pdf' : 'image'}`}>
+                    {note.file_type}
+                  </span>
+                </div>
               </div>
-              <div>
-                <div className="sd-note-title">{note.title}</div>
-                <span className={`sd-note-badge ${note.file_type === 'pdf' ? 'pdf' : 'image'}`}>{note.file_type}</span>
-              </div>
-            </div>
-          )) : <p className="sd-empty">No notes yet.</p>}
+            ))
+          ) : (
+            <p className="sd-empty">No notes yet.</p>
+          )}
         </div>
       </div>
     </StudentLayout>

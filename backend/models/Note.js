@@ -10,7 +10,7 @@ const NoteSchema = new mongoose.Schema({
   subject_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Subject',
-    required: true,
+    required: function() { return !this.is_common; },
     index: true
   },
 
@@ -22,7 +22,21 @@ const NoteSchema = new mongoose.Schema({
 
   label: {
     type: String,
-    required: true,
+    required: function() { return !this.is_common; },
+    trim: true
+  },
+
+  is_common: {
+    type: Boolean,
+    default: false
+  },
+
+  exam_date: {
+    type: Date
+  },
+
+  description: {
+    type: String,
     trim: true
   },
 

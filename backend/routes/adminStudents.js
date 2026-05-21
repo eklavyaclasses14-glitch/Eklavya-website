@@ -138,4 +138,27 @@ router.delete('/:id', async (req, res) => {
   } catch { res.status(500).json({ error: 'Server error' }); }
 });
 
+// POST /api/admin/students/promote-bulk
+router.post('/promote-bulk', async (req, res) => {
+  const { department, semester } = req.body;
+  
+  if (!department || !semester) {
+    return res.status(400).json({ error: 'Department and semester are required' });
+  }
+
+  if (Number(semester) >= 6) {
+    return res.status(400).json({ error: 'Cannot promote beyond semester 6' });
+  }
+
+  try {
+    const result = await Student.updateMany(
+      { department, semester: Number(semester) },
+      { $inc: { semester: 1 } }
+    );
+    res.json({ success: true, modifiedCount: result.modifiedCount });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

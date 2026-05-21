@@ -28,7 +28,7 @@ const DEPARTMENTS = [
   'Power Electronics',
   'Architecture',
 ];
-const semesters = ["All", 1, 2, 3, 4, 5, 6, 7, 8];
+const semesters = ["All", 1, 2, 3, 4, 5, 6];
 
 const DOT_CLASSES = [
   "dot-indigo",
@@ -542,7 +542,7 @@ export default function AdminManageSubjects() {
                 Semester <span className="ams-required">*</span>
               </label>
               <div className="ams-sem-grid">
-                {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+                {[1, 2, 3, 4, 5, 6].map((n) => (
                   <label key={n} className="ams-sem-option">
                     <input
                       type="radio"

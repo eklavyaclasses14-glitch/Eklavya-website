@@ -19,9 +19,45 @@ import {
   Eye,
   EyeOff,
   Lock,
+  TrendingUp,
 } from "lucide-react";
 import { apiFetch } from "../utils/apiFetch";
 import "../styles/AdminManageStudents.css";
+
+function PromoteConfirmModal({ studentName, currentSem, onClose, onConfirm, isBulk = false }) {
+  return (
+    <div className="ams-modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="ams-modal" style={{ maxWidth: '420px' }}>
+        <div className="ams-modal-header" style={{ borderBottom: 'none', paddingBottom: '0.5rem' }}>
+          <span className="ams-modal-title" style={{ color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <TrendingUp size={20} />
+            Confirm Promotion
+          </span>
+          <button className="ams-modal-close" onClick={onClose}>
+            <X size={18} />
+          </button>
+        </div>
+        <div className="ams-modal-body" style={{ padding: '1.5rem', paddingTop: '0.5rem' }}>
+          {isBulk ? (
+            <p style={{ color: 'var(--color-text-muted)', fontSize: '0.95rem', lineHeight: '1.5' }}>
+              Are you sure you want to promote <strong style={{ color: 'var(--color-text)' }}>all students</strong> in Semester {currentSem} to <strong style={{ color: 'var(--color-primary)' }}>Semester {currentSem + 1}</strong>?
+            </p>
+          ) : (
+            <p style={{ color: 'var(--color-text-muted)', fontSize: '0.95rem', lineHeight: '1.5' }}>
+              Are you sure you want to promote <strong style={{ color: 'var(--color-text)' }}>"{studentName}"</strong> to <strong style={{ color: 'var(--color-primary)' }}>Semester {currentSem + 1}</strong>?
+            </p>
+          )}
+        </div>
+        <div className="ams-modal-footer" style={{ borderTop: 'none', paddingTop: '0.5rem' }}>
+          <button type="button" className="ams-modal-cancel" onClick={onClose}>Cancel</button>
+          <button type="button" className="ams-modal-save" onClick={onConfirm} style={{ background: 'var(--color-primary)', color: 'white' }}>
+            Promote
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function DeleteConfirmModal({ title, onClose, onConfirm }) {
   return (
@@ -382,7 +418,7 @@ function EditModal({ student, onClose, onSave, setToast }) {
                   value={form.semester}
                   onChange={handleChange}
                 >
-                  {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+                  {[1, 2, 3, 4, 5, 6].map((n) => (
                     <option key={n} value={n}>
                       Semester {n}
                     </option>
@@ -474,6 +510,7 @@ export default function AdminManageStudents() {
   const [editing, setEditing] = useState(null); // student being edited
   const [toast, setToast] = useState(null); // { message, type }
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [promoteConfirm, setPromoteConfirm] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const itemsPerPage = 10;
@@ -544,6 +581,34 @@ export default function AdminManageStudents() {
       setToast({ message: `"${name}" deleted`, type: "success" });
     } catch {
       setToast({ message: "Delete failed — try again", type: "error" });
+    }
+  };
+
+  const executePromote = async () => {
+    if (!promoteConfirm) return;
+    const { id, name, semester, isBulk, department } = promoteConfirm;
+    setPromoteConfirm(null);
+
+    try {
+      if (isBulk) {
+        const res = await apiFetch('/api/admin/students/promote-bulk', {
+          method: 'POST',
+          body: JSON.stringify({ department, semester })
+        });
+        const data = await res.json();
+        setToast({ message: `Successfully promoted ${data.modifiedCount} students`, type: "success" });
+        fetchStudents();
+      } else {
+        const res = await apiFetch(`/api/admin/students/${id}`, {
+          method: "PUT",
+          body: JSON.stringify({ semester: semester + 1 }),
+        });
+        const updated = await res.json();
+        setStudents((prev) => prev.map((s) => (s._id === updated._id ? updated : s)));
+        setToast({ message: `"${name}" promoted to Semester ${semester + 1}`, type: "success" });
+      }
+    } catch {
+      setToast({ message: "Promotion failed — try again", type: "error" });
     }
   };
 
@@ -646,12 +711,38 @@ export default function AdminManageStudents() {
             onChange={(e) => setSemFilter(e.target.value)}
           >
             <option value="">Select Semester</option>
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+            {[1, 2, 3, 4, 5, 6].map((n) => (
               <option key={n} value={n}>
                 Semester {n}
               </option>
             ))}
           </select>
+
+          {/* Bulk Promote */}
+          {deptFilter && semFilter && Number(semFilter) < 6 && (
+            <button
+              style={{
+                marginLeft: 'auto',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.5rem 1rem',
+                background: 'rgba(52, 211, 153, 0.1)',
+                color: '#10b981',
+                border: '1px solid rgba(52, 211, 153, 0.2)',
+                borderRadius: '8px',
+                fontSize: '0.85rem',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = '#10b981'; e.currentTarget.style.color = '#fff'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(52, 211, 153, 0.1)'; e.currentTarget.style.color = '#10b981'; }}
+              onClick={() => setPromoteConfirm({ isBulk: true, semester: Number(semFilter), department: deptFilter })}
+            >
+              <TrendingUp size={16} /> Bulk Promote
+            </button>
+          )}
         </div>
 
         {/* Table header */}
@@ -732,6 +823,19 @@ export default function AdminManageStudents() {
               <div className="ams-actions">
                 <button
                   className="ams-btn-edit"
+                  onClick={() => setPromoteConfirm({ id: student._id, name: student.name, semester: student.semester })}
+                  title={student.semester >= 6 ? "Max semester reached" : "Promote student"}
+                  disabled={student.semester >= 6}
+                  style={{
+                    color: student.semester >= 6 ? 'var(--color-text-muted)' : '#10b981',
+                    background: student.semester >= 6 ? 'rgba(255,255,255,0.02)' : 'rgba(16,185,129,0.1)',
+                    cursor: student.semester >= 6 ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  <TrendingUp size={14} />
+                </button>
+                <button
+                  className="ams-btn-edit"
                   onClick={() => setEditing(student)}
                   title="Edit student"
                 >
@@ -809,6 +913,17 @@ export default function AdminManageStudents() {
           title={deleteConfirm.name}
           onClose={() => setDeleteConfirm(null)}
           onConfirm={executeDelete}
+        />
+      )}
+
+      {/* ── Promote Modal ── */}
+      {promoteConfirm && (
+        <PromoteConfirmModal
+          studentName={promoteConfirm.name}
+          currentSem={promoteConfirm.semester}
+          isBulk={promoteConfirm.isBulk}
+          onClose={() => setPromoteConfirm(null)}
+          onConfirm={executePromote}
         />
       )}
 

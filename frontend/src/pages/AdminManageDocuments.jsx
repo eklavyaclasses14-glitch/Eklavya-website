@@ -99,6 +99,12 @@ function EditModal({ note, onClose, onSave }) {
       const data = new FormData();
       data.append("title", form.title);
       data.append("file_type", form.file_type);
+      
+      if (form.is_common) {
+        if (form.exam_date) data.append("exam_date", form.exam_date);
+        if (form.description) data.append("description", form.description);
+      }
+      
       if (selectedFile) {
         data.append("file", selectedFile);
       }
@@ -176,18 +182,20 @@ function EditModal({ note, onClose, onSave }) {
 
             {/* Subject Info (read-only) */}
             <div className="amd-modal-row">
-              <div className="amd-modal-field">
-                <label className="amd-modal-label">
-                  <BookOpen size={12} /> Subject
-                </label>
-                <input
-                  type="text"
-                  className="amd-modal-input"
-                  value={form.subject_id?.subject_name || ""}
-                  readOnly
-                  style={{ opacity: 0.6, cursor: "not-allowed" }}
-                />
-              </div>
+              {!form.is_common && (
+                <div className="amd-modal-field">
+                  <label className="amd-modal-label">
+                    <BookOpen size={12} /> Subject
+                  </label>
+                  <input
+                    type="text"
+                    className="amd-modal-input"
+                    value={form.subject_id?.subject_name || ""}
+                    readOnly
+                    style={{ opacity: 0.6, cursor: "not-allowed" }}
+                  />
+                </div>
+              )}
               <div className="amd-modal-field">
                 <label className="amd-modal-label">File Type *</label>
                 <select
@@ -201,6 +209,31 @@ function EditModal({ note, onClose, onSave }) {
                 </select>
               </div>
             </div>
+
+            {form.is_common && (
+              <>
+                <div className="amd-modal-field" style={{ marginTop: '0.75rem' }}>
+                  <label className="amd-modal-label">Exam Date (Optional)</label>
+                  <input
+                    type="date"
+                    name="exam_date"
+                    className="amd-modal-input"
+                    value={form.exam_date ? form.exam_date.substring(0, 10) : ""}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="amd-modal-field" style={{ marginTop: '0.75rem' }}>
+                  <label className="amd-modal-label">Description (Optional)</label>
+                  <textarea
+                    name="description"
+                    className="amd-modal-input"
+                    rows={2}
+                    value={form.description || ""}
+                    onChange={handleChange}
+                  />
+                </div>
+              </>
+            )}
 
             {/* File Upload Box */}
             <div className="amd-modal-field">
@@ -346,12 +379,20 @@ function DeleteConfirmModal({ title, onClose, onConfirm }) {
 }
 
 const DEPARTMENTS = [
-  "Computer Engineering",
-  "Mechanical Engineering",
-  "Civil Engineering",
-  "Electrical Engineering",
+  'Automation & Robotics',
+  'Automobile Engineering',
+  'Civil Engineering',
+  'Electrical Engineering',
+  'Computer Engineering',
+  'Information Technology',
+  'Mechanical Engineering',
+  'Mechanical Engineering (CAD/CAM)',
+  'Information & Communication Technology',
+  'Metallurgy',
+  'Power Electronics',
+  'Architecture',
 ];
-const FILTER_DEPARTMENTS = ["All", ...DEPARTMENTS];
+const FILTER_DEPARTMENTS = ["All", "Common", ...DEPARTMENTS];
 
 //  Main Page
 export default function AdminManageDocuments() {
@@ -399,7 +440,7 @@ export default function AdminManageDocuments() {
       (n.subject_id?.subject_name || "")
         .toLowerCase()
         .includes(search.toLowerCase());
-    const matchType = typeFilter === "All" || n.file_type === typeFilter;
+    const matchType = typeFilter === "All" || n.file_type === typeFilter || (typeFilter === "common" && n.is_common);
     return matchSearch && matchType;
   });
 
@@ -515,7 +556,7 @@ export default function AdminManageDocuments() {
             style={{ minWidth: '150px' }}
           >
             <option value="">Select Semester</option>
-            {[1, 2, 3, 4, 5, 6, 7, 8].map(s => <option key={s} value={s}>Semester {s}</option>)}
+            {[1, 2, 3, 4, 5, 6].map(s => <option key={s} value={s}>Semester {s}</option>)}
           </select>
 
           <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem' }}>
@@ -567,32 +608,33 @@ export default function AdminManageDocuments() {
             <option value="All">All Types</option>
             <option value="pdf">PDF</option>
             <option value="image">Image</option>
+            <option value="common">Common Exam Paper</option>
           </select>
         </div>
 
-        {/* Card Grid */}
+        {/* List Layout */}
         <div
-          className="amd-card-grid"
+          className="amd-list-layout"
           style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-            gap: "1.5rem",
+            display: "flex",
+            flexDirection: "column",
+            gap: "1rem",
             padding: "1.5rem",
             minHeight: '300px'
           }}
         >
           {loading ? (
-            <div className="amd-empty" style={{ gridColumn: "1 / -1" }}>
+            <div className="amd-empty" style={{ alignSelf: "center", margin: "auto" }}>
               <div className="sd-spinner" style={{ margin: '0 auto 1rem' }}></div>
               Loading documents…
             </div>
           ) : !deptFilter && !semFilter ? (
-            <div className="amd-empty" style={{ gridColumn: "1 / -1" }}>
+            <div className="amd-empty" style={{ alignSelf: "center", margin: "auto" }}>
               <Search size={48} style={{ margin: '0 auto 1rem', opacity: 0.2, display: 'block' }} />
               Please select <b>Department</b> and <b>Semester</b> to fetch documents.
             </div>
           ) : paginatedNotes.length === 0 ? (
-            <div className="amd-empty" style={{ gridColumn: "1 / -1" }}>
+            <div className="amd-empty" style={{ alignSelf: "center", margin: "auto" }}>
               {search || typeFilter !== "All"
                 ? "No documents match your search filters."
                 : "No documents found for this criteria."}
@@ -601,113 +643,170 @@ export default function AdminManageDocuments() {
             paginatedNotes.map((note) => (
               <div
                 key={note._id}
-                className="admin-info-card"
                 style={{
                   display: "flex",
-                  flexDirection: "column",
-                  height: "100%",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  background: "var(--color-surface)",
+                  border: "1px solid var(--color-border)",
+                  borderRadius: "14px",
+                  padding: "1.25rem 1.5rem",
+                  transition: "all 0.2s ease",
+                  boxShadow: "0 4px 6px rgba(0,0,0,0.05)",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-3px)";
+                  e.currentTarget.style.borderColor = "var(--color-primary)";
+                  e.currentTarget.style.boxShadow = "0 10px 20px rgba(0,0,0,0.15)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "none";
+                  e.currentTarget.style.borderColor = "var(--color-border)";
+                  e.currentTarget.style.boxShadow = "0 4px 6px rgba(0,0,0,0.05)";
                 }}
               >
-                <div
-                  className="admin-info-card-body"
-                  style={{ flex: 1, textAlign: "center", padding: "1.5rem" }}
-                >
-                  <div
+                {/* Left: Icon + Info */}
+                <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", flex: 1, minWidth: 0 }}>
+                  {/* Icon Container */}
+                  <div style={{
+                    width: 52,
+                    height: 52,
+                    borderRadius: "12px",
+                    background: note.file_type === "pdf" ? "rgba(239,68,68,0.1)" : "rgba(14,165,233,0.1)",
+                    color: note.file_type === "pdf" ? "#ef4444" : "#0ea5e9",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0
+                  }}>
+                    {note.file_type === "pdf" ? <FileText size={26} /> : <Image size={26} />}
+                  </div>
+                  
+                  {/* Text Info */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem", minWidth: 0 }}>
+                    <h3 style={{ 
+                      fontSize: "1.05rem", 
+                      fontWeight: 700, 
+                      color: "var(--color-text)", 
+                      margin: 0, 
+                      display: "flex", 
+                      alignItems: "center", 
+                      gap: "0.75rem",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis"
+                    }}>
+                      {note.title}
+                      <span style={{ 
+                        fontSize: "0.65rem", 
+                        padding: "0.2rem 0.5rem", 
+                        borderRadius: "6px", 
+                        background: "rgba(255,255,255,0.06)", 
+                        color: "var(--color-text-muted)", 
+                        fontWeight: 700, 
+                        textTransform: "uppercase", 
+                        letterSpacing: "0.05em",
+                        flexShrink: 0
+                      }}>
+                        {note.file_type}
+                      </span>
+                    </h3>
+                    <p style={{ 
+                      fontSize: "0.85rem", 
+                      color: "var(--color-text-muted)", 
+                      margin: 0, 
+                      display: "flex", 
+                      alignItems: "center", 
+                      gap: "0.4rem",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis"
+                    }}>
+                      {note.is_common ? (
+                        <>
+                          <BookOpen size={14} style={{ opacity: 0.6 }} /> 
+                          <span style={{ color: "var(--color-primary)", fontWeight: 500 }}>Common Exam</span>
+                          {note.exam_date && ` • ${new Date(note.exam_date).toLocaleDateString()}`}
+                        </>
+                      ) : (
+                        <>
+                          <BookOpen size={14} style={{ opacity: 0.6 }} />
+                          {note.subject_id?.subject_name} <span style={{ opacity: 0.5 }}>•</span> Sem {note.subject_id?.semester}
+                        </>
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Right: Actions */}
+                <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexShrink: 0, marginLeft: "1rem" }}>
+                  <a
+                    href={note.fileUrl}
+                    target="_blank"
+                    rel="noreferrer"
                     style={{
-                      width: 56,
-                      height: 56,
-                      borderRadius: "var(--radius-lg)",
-                      background:
-                        note.file_type === "pdf"
-                          ? "rgba(239,68,68,0.1)"
-                          : "rgba(14,165,233,0.1)",
-                      color:
-                        note.file_type === "pdf"
-                          ? "#ef4444"
-                          : "var(--color-primary)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      margin: "0 auto",
+                      width: 38,
+                      height: 38,
+                      borderRadius: "10px",
+                      background: "rgba(16,185,129,0.1)",
+                      color: "#10b981",
+                      transition: "all 0.2s",
+                      textDecoration: "none"
                     }}
+                    title="View Document"
+                    onMouseEnter={(e) => { e.currentTarget.style.background = "#10b981"; e.currentTarget.style.color = "#fff"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(16,185,129,0.1)"; e.currentTarget.style.color = "#10b981"; }}
                   >
-                    {note.file_type === "pdf" ? (
-                      <FileText size={28} />
-                    ) : (
-                      <Image size={28} />
-                    )}
-                  </div>
-                  <h3
-                    style={{
-                      fontWeight: 700,
-                      fontSize: "1rem",
-                      color: "var(--color-text)",
-                      marginTop: "1rem",
-                    }}
-                  >
-                    {note.title}
-                  </h3>
-                  <p
-                    style={{
-                      fontSize: "0.8rem",
-                      color: "var(--color-text-muted)",
-                      marginTop: "0.5rem",
-                    }}
-                  >
-                    {note.subject_id?.subject_name} · Sem{" "}
-                    {note.subject_id?.semester}
-                  </p>
-                  <div
-                    style={{
-                      marginTop: "1rem",
-                      display: "flex",
-                      justifyContent: "center",
-                      gap: "0.5rem",
-                    }}
-                  >
-                    <span className="amd-dept-tag">
-                      {note.file_type.toUpperCase()}
-                    </span>
-                    <a
-                      href={note.fileUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="amd-dept-tag"
-                      style={{
-                        background: "rgba(52,211,153,0.1)",
-                        color: "#059669",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.25rem",
-                      }}
-                    >
-                      <Link2 size={12} /> View
-                    </a>
-                  </div>
-                </div>
-                <div
-                  style={{
-                    padding: "1rem",
-                    borderTop: "1px solid var(--color-border)",
-                    display: "flex",
-                    justifyContent: "center",
-                    gap: "1rem",
-                    background: "var(--color-background)",
-                  }}
-                >
+                    <Link2 size={18} />
+                  </a>
+
                   <button
-                    className="amd-btn-edit"
+                    type="button"
                     onClick={() => setEditing(note)}
-                    title="Edit document"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: 38,
+                      height: 38,
+                      borderRadius: "10px",
+                      background: "rgba(245,158,11,0.1)",
+                      color: "#f59e0b",
+                      border: "none",
+                      cursor: "pointer",
+                      transition: "all 0.2s",
+                    }}
+                    title="Edit Document"
+                    onMouseEnter={(e) => { e.currentTarget.style.background = "#f59e0b"; e.currentTarget.style.color = "#fff"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(245,158,11,0.1)"; e.currentTarget.style.color = "#f59e0b"; }}
                   >
-                    <Pencil size={14} /> Edit
+                    <Pencil size={18} />
                   </button>
+
                   <button
-                    className="amd-btn-delete"
+                    type="button"
                     onClick={() => handleDelete(note._id, note.title)}
-                    title="Delete document"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: 38,
+                      height: 38,
+                      borderRadius: "10px",
+                      background: "rgba(239,68,68,0.1)",
+                      color: "#ef4444",
+                      border: "none",
+                      cursor: "pointer",
+                      transition: "all 0.2s",
+                    }}
+                    title="Delete Document"
+                    onMouseEnter={(e) => { e.currentTarget.style.background = "#ef4444"; e.currentTarget.style.color = "#fff"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(239,68,68,0.1)"; e.currentTarget.style.color = "#ef4444"; }}
                   >
-                    <Trash2 size={14} /> Delete
+                    <Trash2 size={18} />
                   </button>
                 </div>
               </div>

@@ -13,11 +13,25 @@ router.use(protect, staffOrAdminOnly);
 // Upload a file to Cloudinary and save metadata to DB.
 router.post('/', upload.single('file'), async (req, res) => {
   try {
-    const { title, label, subject_id, file_type } = req.body;
+    const { title, label, subject_id, file_type, is_common, exam_date, description } = req.body;
 
     if (!req.file) {
       return res.status(400).json({ error: 'A file is required' });
     }
+
+    if (is_common === 'true' || is_common === true) {
+      const note = await Note.create({
+        title,
+        is_common: true,
+        exam_date: exam_date ? new Date(exam_date) : undefined,
+        description,
+        file_type: file_type || 'pdf',
+        fileUrl:   req.file.path,
+        publicId:  req.file.filename,
+      });
+      return res.status(201).json(note);
+    }
+
     if (!mongoose.Types.ObjectId.isValid(subject_id)) {
       return res.status(400).json({ error: 'Invalid subject ID' });
     }
@@ -48,11 +62,14 @@ router.get('/', async (req, res) => {
 
     if (department === 'All') {
       // No filter needed
+    } else if (department === 'Common') {
+      query.is_common = true;
     } else if (department && semester) {
       const Subject = require('../models/Subject');
       const subjects = await Subject.find({ department, semester: Number(semester) });
       const subjectIds = subjects.map(s => s._id);
       query.subject_id = { $in: subjectIds };
+      query.is_common = { $ne: true };
     } else {
       return res.json({ notes: [], total: 0, pages: 0 });
     }
@@ -78,13 +95,15 @@ router.get('/', async (req, res) => {
 // ── PUT /api/admin/notes/:id ──────────────────────────────────────────────
 router.put('/:id', upload.single('file'), async (req, res) => {
   try {
-    const { title, file_type, label } = req.body;
+    const { title, file_type, label, exam_date, description } = req.body;
     const note = await Note.findById(req.params.id);
     if (!note) return res.status(404).json({ error: 'Note not found' });
 
     if (title !== undefined) note.title = title;
     if (file_type !== undefined) note.file_type = file_type;
     if (label !== undefined) note.label = label;
+    if (exam_date !== undefined) note.exam_date = exam_date ? new Date(exam_date) : undefined;
+    if (description !== undefined) note.description = description;
 
     // Handle new file upload
     if (req.file) {

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
 import { ArrowLeft, UploadCloud, File, Image, CheckCircle2, AlertCircle, X } from 'lucide-react';
 import { apiFetch } from '../utils/apiFetch';
+import "../styles/AdminForms.css";
 import "../styles/AdminUploadDocument.css";
 const DEPARTMENTS = [
   'Automation & Robotics',
@@ -36,7 +37,11 @@ export default function AdminUploadDocument() {
     semester: 1,
     subject_id: '',
     file_type: 'pdf',
+    exam_date: '',
+    description: '',
   });
+
+  const [isCommonExam, setIsCommonExam] = useState(false);
 
   useEffect(() => {
     apiFetch('/api/admin/subjects')
@@ -93,9 +98,16 @@ export default function AdminUploadDocument() {
       const data = new FormData();
       data.append('file', selectedFile);
       data.append('title', formData.title);
-      data.append('label', formData.label);
-      data.append('subject_id', formData.subject_id);
       data.append('file_type', formData.file_type);
+
+      if (isCommonExam) {
+        data.append('is_common', 'true');
+        if (formData.exam_date) data.append('exam_date', formData.exam_date);
+        if (formData.description) data.append('description', formData.description);
+      } else {
+        data.append('label', formData.label);
+        data.append('subject_id', formData.subject_id);
+      }
 
       const token = localStorage.getItem('token');
       setProgress(40);
@@ -171,56 +183,72 @@ export default function AdminUploadDocument() {
           </div>
         )}
 
+        {/* Toggle */}
+        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', background: 'var(--color-surface)', padding: '0.5rem', borderRadius: '12px', border: '1px solid var(--color-border)', width: 'fit-content' }}>
+          <button type="button" onClick={() => setIsCommonExam(false)} style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, background: !isCommonExam ? 'var(--color-primary)' : 'transparent', color: !isCommonExam ? '#fff' : 'var(--color-text-muted)' }}>
+            Course Material
+          </button>
+          <button type="button" onClick={() => setIsCommonExam(true)} style={{ padding: '0.5rem 1rem', borderRadius: '8px', border: 'none', cursor: 'pointer', fontWeight: 600, background: isCommonExam ? 'var(--color-primary)' : 'transparent', color: isCommonExam ? '#fff' : 'var(--color-text-muted)' }}>
+            Common Exam Paper
+          </button>
+        </div>
+
         {/* Form */}
         <div className="admin-form-card">
           <form onSubmit={handleSubmit} className="admin-form-card-body">
 
             {/* Title */}
             <div className="admin-field-group">
-              <label>Title</label>
-              <input type="text" name="title" className="admin-input" value={formData.title} onChange={handleChange} required placeholder="e.g. Data Structures - Unit 1 Notes" />
+              <label>{isCommonExam ? 'Exam Name / Title *' : 'Title *'}</label>
+              <input type="text" name="title" className="admin-input" value={formData.title} onChange={handleChange} required placeholder={isCommonExam ? "e.g. Midterm Common Paper" : "e.g. Data Structures - Unit 1"} />
             </div>
 
-            {/* Label */}
-            <div className="admin-field-group">
-              <label>Label (Category)</label>
-              <input type="text" name="label" className="admin-input" placeholder="e.g. Unit 1 / Assignment / Previous Year Paper" value={formData.label} onChange={handleChange} required />
-            </div>
+            {!isCommonExam && (
+              <>
+                <div className="admin-field-group">
+                  <label>Label (Category) *</label>
+                  <input type="text" name="label" className="admin-input" placeholder="e.g. Unit 1 / Assignment" value={formData.label} onChange={handleChange} required />
+                </div>
 
-            {/* Department + Semester */}
-            <div className="admin-field-row">
-              <div className="admin-field-group">
-                <label>Department</label>
-                <select name="department" className="admin-input" value={formData.department} onChange={handleChange}>
-                  {DEPARTMENTS.map(d => <option key={d}>{d}</option>)}
-                </select>
-              </div>
-              <div className="admin-field-group">
-                <label>Semester</label>
-                <select name="semester" className="admin-input" value={formData.semester} onChange={handleChange}>
-                  {[1, 2, 3, 4, 5, 6, 7, 8].map(n => <option key={n}>{n}</option>)}
-                </select>
-              </div>
-            </div>
+                <div className="admin-field-row">
+                  <div className="admin-field-group">
+                    <label>Department *</label>
+                    <select name="department" className="admin-input" value={formData.department} onChange={handleChange}>
+                      {DEPARTMENTS.map(d => <option key={d}>{d}</option>)}
+                    </select>
+                  </div>
+                  <div className="admin-field-group">
+                    <label>Semester *</label>
+                    <select name="semester" className="admin-input" value={formData.semester} onChange={handleChange}>
+                      {[1, 2, 3, 4, 5, 6].map(n => <option key={n}>{n}</option>)}
+                    </select>
+                  </div>
+                </div>
 
-            {/* Subject */}
-            <div className="admin-field-group">
-              <label>Subject</label>
-              <select
-  name="subject_id"
-  className="admin-input"
-  value={formData.subject_id}
-  onChange={handleChange}
->
-  <option value="">Select Subject</option>
+                <div className="admin-field-group">
+                  <label>Subject *</label>
+                  <select name="subject_id" className="admin-input" value={formData.subject_id} onChange={handleChange} required>
+                    <option value="">Select Subject</option>
+                    {filteredSubjects.map(sub => (
+                      <option key={sub._id} value={sub._id}>{sub.subject_name}</option>
+                    ))}
+                  </select>
+                </div>
+              </>
+            )}
 
-  {filteredSubjects.map(sub => (
-    <option key={sub._id} value={sub._id}>
-      {sub.subject_name}
-    </option>
-  ))}
-</select>
-            </div>
+            {isCommonExam && (
+              <>
+                <div className="admin-field-group">
+                  <label>Exam Date (Optional)</label>
+                  <input type="date" name="exam_date" className="admin-input" value={formData.exam_date} onChange={handleChange} />
+                </div>
+                <div className="admin-field-group">
+                  <label>Description (Optional)</label>
+                  <textarea name="description" className="admin-input" rows="3" value={formData.description} onChange={handleChange} placeholder="Add any details about this exam paper..." />
+                </div>
+              </>
+            )}
 
             {/* File Picker */}
             <div className="admin-field-group">

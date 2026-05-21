@@ -12,9 +12,20 @@ const FeeSchema = new mongoose.Schema(
       trim: true,
       required: true,
     },
+    semester: {
+      type: Number,
+      required: true,
+      min: 1,
+      max: 8,
+    },
     amount: {
       type: Number,
       required: true,
+      min: 0,
+    },
+    paid_amount: {
+      type: Number,
+      default: 0,
       min: 0,
     },
     due_date: {
@@ -23,7 +34,7 @@ const FeeSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['Paid', 'Pending', 'Overdue'],
+      enum: ['Paid', 'Partial Paid', 'Pending', 'Overdue'],
       default: 'Pending',
     },
     description: {
@@ -42,19 +53,10 @@ const FeeSchema = new mongoose.Schema(
 );
 
 // ── Duplicate guard ──────────────────────────────────────────────────────────
-// A student cannot have two fee records with the exact same description AND
-// due_date. This covers both single and bulk inserts.
-// Use a partial/sparse index so records without a description are still allowed
-// to have multiple entries (only non-null description combos are unique).
+// Strict 1 fee per semester rule
 FeeSchema.index(
-  { student_id: 1, description: 1, due_date: 1 },
-  {
-    unique: true,
-    partialFilterExpression: {
-      description: { $type: 'string', $gt: '' }, // only enforce when description is filled
-    },
-    name: 'unique_student_description_duedate',
-  }
+  { student_id: 1, semester: 1 },
+  { unique: true, name: 'unique_student_semester' }
 );
 
 module.exports = mongoose.model('Fees', FeeSchema);

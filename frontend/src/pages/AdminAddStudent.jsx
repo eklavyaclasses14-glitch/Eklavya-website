@@ -334,7 +334,7 @@ export default function AdminAddStudent() {
                     Semester <span className="admin-field-label-required">*</span>
                   </label>
                   <select name="semester" className="admin-input" value={formData.semester} onChange={handleChange} required>
-                    {[1, 2, 3, 4, 5, 6, 7, 8].map(n => <option key={n} value={n}>Semester {n}</option>)}
+                    {[1, 2, 3, 4, 5, 6].map(n => <option key={n} value={n}>Semester {n}</option>)}
                   </select>
                 </div>
               </div>

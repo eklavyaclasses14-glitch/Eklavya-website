@@ -9,6 +9,7 @@ const FILTERS = [
   { label: 'All',    value: 'all'   },
   { label: 'PDFs',   value: 'pdf'   },
   { label: 'Images', value: 'image' },
+  { label: 'Common Exams', value: 'exam' }
 ];
 
 const DEPARTMENTS = [
@@ -23,10 +24,11 @@ export default function StudentNotes() {
   const [notes, setNotes]       = useState([]);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState('');
-  const [filter, setFilter]     = useState('all');
+  const [filter, setFilter]     = useState('none');
   const [viewing, setViewing]   = useState(null); 
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [counts, setCounts] = useState({ all: 0, pdf: 0, image: 0, exam: 0 });
   const itemsPerPage = 6;
 
   const user      = JSON.parse(localStorage.getItem('user') || '{}');
@@ -62,6 +64,7 @@ export default function StudentNotes() {
         
         setNotes(d.notes || []); 
         setTotalPages(d.pages || 1);
+        if (d.counts) setCounts(d.counts);
       } catch (e) {
         setError(e.message);
       } finally {
@@ -121,9 +124,9 @@ export default function StudentNotes() {
             {f.value === 'pdf'   && <File  size={13} />}
             {f.value === 'image' && <Image size={13} />}
             {f.label}
-            {f.value !== 'all' && (
+            {f.value !== 'all' && counts[f.value] !== undefined && (
               <span style={{ opacity: 0.7 }}>
-                ({notes.filter(n => n.file_type === f.value).length})
+                ({counts[f.value]})
               </span>
             )}
           </button>
@@ -137,6 +140,14 @@ export default function StudentNotes() {
              <div className="sd-spinner" style={{ margin: '0 auto 1.5rem' }}></div>
              <p>Fetching your documents...</p>
            </div>
+        ) : filter === 'none' ? (
+          <div className="sn-empty" style={{ gridColumn: '1/-1' }}>
+            <Search size={48} className="sn-empty-icon" style={{ opacity: 0.2, margin: '0 auto 1rem', display: 'block' }} />
+            <p className="sn-empty-title">Select a category</p>
+            <p className="sn-empty-sub">
+              Please click on a filter above to view your documents.
+            </p>
+          </div>
         ) : paginatedNotes.length === 0 ? (
           <div className="sn-empty" style={{ gridColumn: '1/-1' }}>
             <FileText size={48} className="sn-empty-icon" />
@@ -173,9 +184,23 @@ export default function StudentNotes() {
                   </span>
                   <p className="sn-card-title">{note.title}</p>
                   <p className="sn-card-subject">
-                    <BookOpen size={12} style={{ display: 'inline', marginRight: '0.3rem', verticalAlign: 'middle' }} />
-                    {note.subject_id?.subject_name || 'Subject'}
+                    {note.is_common ? (
+                      <>
+                        <BookOpen size={12} style={{ display: 'inline', marginRight: '0.3rem', verticalAlign: 'middle' }} />
+                        {note.exam_date ? `Exam Date: ${new Date(note.exam_date).toLocaleDateString()}` : 'Common Exam Paper'}
+                      </>
+                    ) : (
+                      <>
+                        <BookOpen size={12} style={{ display: 'inline', marginRight: '0.3rem', verticalAlign: 'middle' }} />
+                        {note.subject_id?.subject_name || 'Subject'}
+                      </>
+                    )}
                   </p>
+                  {note.is_common && note.description && (
+                    <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginTop: '0.5rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {note.description}
+                    </p>
+                  )}
                 </div>
 
                 <div className="sn-card-footer">

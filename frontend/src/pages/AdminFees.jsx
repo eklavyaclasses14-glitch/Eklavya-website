@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import AdminLayout from "../components/AdminLayout";
-import { Plus, Trash2, Check, X, Users, Pencil, AlertCircle } from "lucide-react";
+import { Plus, Trash2, Check, X, Users, Pencil, AlertCircle, ChevronDown } from "lucide-react";
 import { apiFetch } from "../utils/apiFetch";
 import "../styles/AdminForms.css";
 
@@ -9,7 +9,9 @@ import "../styles/AdminForms.css";
 const emptyForm = {
   student_id: "",
   department: "",
+  semester: 1,
   amount: "",
+  paid_amount: 0,
   due_date: "",
   status: "Pending",
   description: "",
@@ -18,20 +20,43 @@ const emptyForm = {
 };
 
 const emptyBulk = {
-  student_ids: [],
   department: "",
+  semester: 1,
   amount: "",
   due_date: "",
-  status: "Pending",
   description: "",
 };
+
+const DEPARTMENTS = [
+  'Automation & Robotics',
+  'Automobile Engineering',
+  'Civil Engineering',
+  'Electrical Engineering',
+  'Computer Engineering',
+  'Information Technology',
+  'Mechanical Engineering',
+  'Mechanical Engineering (CAD/CAM)',
+  'Information & Communication Technology',
+  'Metallurgy',
+  'Power Electronics',
+  'Architecture',
+];
 
 const badgeClass = (s) =>
   s === "Paid"
     ? "badge badge-paid"
-    : s === "Pending"
-      ? "badge badge-pending"
-      : "badge badge-overdue";
+    : s === "Partial Paid"
+      ? "badge"
+      : s === "Pending"
+        ? "badge badge-pending"
+        : "badge badge-overdue";
+
+const getBadgeStyle = (s) => {
+  if (s === "Partial Paid") {
+    return { backgroundColor: "rgba(245,158,11,0.15)", color: "#d97706" };
+  }
+  return {};
+}
 
 /** Format a Date/ISO string → YYYY-MM-DD for <input type="date"> */
 const toDateInput = (val) => {
@@ -54,10 +79,10 @@ export default function AdminFees() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // modal: null | 'add' | 'edit' | 'bulk'
   const [modal, setModal] = useState(null);
   const [editId, setEditId] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const [formData, setFormData] = useState(emptyForm);
   const [bulkForm, setBulkForm] = useState(emptyBulk);
@@ -90,17 +115,15 @@ export default function AdminFees() {
 
   const openAdd = () => {
     setError("");
-
     const firstStudent = students[0];
-
     setFormData({
       ...emptyForm,
       student_id: firstStudent?._id || "",
       department: firstStudent?.department || "",
     });
-
     setModal("add");
   };
+
   const openEdit = (fee) => {
     setError("");
     setEditId(fee._id);
@@ -108,7 +131,9 @@ export default function AdminFees() {
       // Check if student_id is an object (populated) or just an ID
       student_id: fee.student_id?._id || fee.student_id || "",
       department: fee.student_id?.department || fee.department || "",
+      semester: fee.semester || fee.student_id?.semester || 1,
       amount: fee.amount ?? "",
+      paid_amount: fee.paid_amount ?? 0,
       due_date: toDateInput(fee.due_date),
       status: fee.status || "Pending",
       description: fee.description || "",
@@ -182,44 +207,10 @@ export default function AdminFees() {
 
   // ── bulk add ─────────────────────────────────────────────────────────────────
 
-const filteredStudents = students.filter((s) => {
-  const matchesSearch =
-    s.name.toLowerCase().includes(search.toLowerCase()) ||
-    (s.user_id ?? "").toLowerCase().includes(search.toLowerCase());
-
-  const matchesDepartment =
-    !bulkForm.department ||
-    s.department?.toLowerCase() === bulkForm.department.toLowerCase();
-
-  return matchesSearch && matchesDepartment;
-});
-
-  const allVisible =
-    filteredStudents.length > 0 &&
-    filteredStudents.every((s) => bulkForm.student_ids.includes(s._id));
-
-  const toggleStudent = (id) =>
-    setBulkForm((p) => ({
-      ...p,
-      student_ids: p.student_ids.includes(id)
-        ? p.student_ids.filter((sid) => sid !== id)
-        : [...p.student_ids, id],
-    }));
-
-  const toggleAll = () => {
-    const ids = filteredStudents.map((s) => s._id);
-    setBulkForm((p) => ({
-      ...p,
-      student_ids: allVisible
-        ? p.student_ids.filter((id) => !ids.includes(id))
-        : [...new Set([...p.student_ids, ...ids])],
-    }));
-  };
-
   const handleBulkAdd = async (e) => {
     e.preventDefault();
-    if (!bulkForm.student_ids.length) {
-      setError("Select at least one student.");
+    if (!bulkForm.department || !bulkForm.semester) {
+      setError("Department and Semester are required.");
       return;
     }
     setError("");
@@ -246,7 +237,7 @@ const filteredStudents = students.filter((s) => {
 
   // ── status / delete ──────────────────────────────────────────────────────────
 
-  const updateStatus = async (id, status) => {
+  const updateStatus = async (id, status, fullAmount) => {
     try {
       const res = await jsonFetch(
         `api/admin/fees/${id}`,
@@ -254,9 +245,7 @@ const filteredStudents = students.filter((s) => {
           method: "PUT",
           body: JSON.stringify({
             status,
-            ...(status === "Paid"
-              ? { payment_date: new Date().toISOString() }
-              : {}),
+            ...(status === "Paid" ? { paid_amount: fullAmount, payment_date: new Date().toISOString() } : {}),
           }),
         },
       );
@@ -309,20 +298,95 @@ const filteredStudents = students.filter((s) => {
               Track payments, dues, and overdue fees
             </p>
           </div>
-          <div className="admin-fees-actions">
+          <div className="admin-fees-actions" style={{ position: "relative" }}>
+            {/* Invisible overlay to close menu when clicking outside */}
+            {isMenuOpen && (
+              <div 
+                style={{ position: "fixed", inset: 0, zIndex: 40 }} 
+                onClick={() => setIsMenuOpen(false)}
+              ></div>
+            )}
+            
             <button
-              className="admin-add-new-btn admin-add-new-btn--accent"
-              onClick={() => {
-                setError("");
-                setBulkForm(emptyBulk);
-                setModal("bulk");
-              }}
+              className="admin-add-new-btn"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              style={{ padding: "0.6rem 1.25rem", borderRadius: "8px", display: "flex", gap: "0.5rem", alignItems: "center", position: "relative" }}
             >
-              <Users size={15} /> Bulk Add Fees
+              Actions <ChevronDown size={16} style={{ transform: isMenuOpen ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }} />
             </button>
-            <button className="admin-add-new-btn" onClick={openAdd}>
-              <Plus size={15} /> Add Fee Record
-            </button>
+            
+            {isMenuOpen && (
+              <div 
+                style={{
+                  position: "absolute",
+                  top: "calc(100% + 0.5rem)",
+                  right: 0,
+                  background: "var(--color-surface)",
+                  border: "1px solid var(--color-border)",
+                  borderRadius: "10px",
+                  boxShadow: "0 10px 25px rgba(0,0,0,0.15)",
+                  minWidth: "220px",
+                  zIndex: 50,
+                  display: "flex",
+                  flexDirection: "column",
+                  overflow: "hidden"
+                }}
+              >
+                <button
+                  type="button"
+                  style={{
+                    padding: "0.85rem 1.25rem",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.75rem",
+                    background: "none",
+                    border: "none",
+                    borderBottom: "1px solid var(--color-border)",
+                    cursor: "pointer",
+                    textAlign: "left",
+                    color: "var(--color-text)",
+                    fontSize: "0.95rem",
+                    fontWeight: 600,
+                    transition: "all 0.2s"
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = "var(--color-background-soft)"}
+                  onMouseLeave={(e) => e.currentTarget.style.background = "none"}
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    setError("");
+                    setBulkForm(emptyBulk);
+                    setModal("bulk");
+                  }}
+                >
+                  <Users size={18} style={{ color: "#3b82f6" }} /> Create Fees Rule
+                </button>
+                <button
+                  type="button"
+                  style={{
+                    padding: "0.85rem 1.25rem",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.75rem",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    textAlign: "left",
+                    color: "var(--color-text)",
+                    fontSize: "0.95rem",
+                    fontWeight: 600,
+                    transition: "all 0.2s"
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = "var(--color-background-soft)"}
+                  onMouseLeave={(e) => e.currentTarget.style.background = "none"}
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    openAdd();
+                  }}
+                >
+                  <Plus size={18} style={{ color: "#10b981" }} /> Add Fee Record
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -333,10 +397,11 @@ const filteredStudents = students.filter((s) => {
               <thead>
                 <tr>
                   <th>Student</th>
-                  <th>Department</th>
+                  <th>Dept/Sem</th>
                   <th>Amount</th>
+                  <th>Paid Amount</th>
+                  <th>Remaining</th>
                   <th>Due Date</th>
-                  <th>Description</th>
                   <th>Status</th>
                   <th style={{ textAlign: "right" }}>Actions</th>
                 </tr>
@@ -344,48 +409,39 @@ const filteredStudents = students.filter((s) => {
               <tbody>
                 {fees.length === 0 && (
                   <tr>
-                    <td colSpan={7} className="empty-state">
+                    <td colSpan={8} className="empty-state">
                       No fee records found.
                     </td>
                   </tr>
                 )}
-                {fees.map((f) => (
+                {fees.map((f) => {
+                  const remaining = (f.amount || 0) - (f.paid_amount || 0);
+                  return (
                   <tr key={f._id}>
                     <td>
                       <div className="student-name">{f.student_id?.name}</div>
                       <div className="student-id">{f.student_id?.user_id}</div>
                     </td>
-                    <td
-                      style={{
-                        fontSize: "0.82rem",
-                        color: "var(--color-text-muted)",
-                      }}
-                    >
-                      {f.department || "—"}
+                    <td>
+                      <div style={{ fontSize: "0.85rem", color: "var(--color-text-muted)" }}>
+                        {f.department || "—"}
+                      </div>
+                      <div style={{ fontSize: "0.85rem", fontWeight: 600 }}>
+                        Sem {f.semester || 1}
+                      </div>
                     </td>
                     <td style={{ fontWeight: 600 }}>
                       ₹{f.amount?.toLocaleString()}
                     </td>
-                    <td>{new Date(f.due_date).toLocaleDateString()}</td>
-                    <td
-                      style={{
-                        color: "var(--color-text-muted)",
-                        fontSize: "0.82rem",
-                        maxWidth: "180px",
-                      }}
-                    >
-                      <div
-                        style={{
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                        }}
-                      >
-                        {f.description || "—"}
-                      </div>
+                    <td style={{ fontWeight: 600, color: "#10b981" }}>
+                      ₹{f.paid_amount?.toLocaleString() || 0}
                     </td>
+                    <td style={{ fontWeight: 600, color: remaining > 0 ? "#ef4444" : "inherit" }}>
+                      ₹{remaining.toLocaleString()}
+                    </td>
+                    <td>{new Date(f.due_date).toLocaleDateString()}</td>
                     <td>
-                      <span className={badgeClass(f.status)}>{f.status}</span>
+                      <span className={badgeClass(f.status)} style={getBadgeStyle(f.status)}>{f.status}</span>
                     </td>
                     <td style={{ textAlign: "right" }}>
                       <div
@@ -398,8 +454,8 @@ const filteredStudents = students.filter((s) => {
                         {f.status !== "Paid" && (
                           <button
                             className="icon-btn icon-btn--success"
-                            onClick={() => updateStatus(f._id, "Paid")}
-                            title="Mark as Paid"
+                            onClick={() => updateStatus(f._id, "Paid", f.amount)}
+                            title="Mark as Full Paid"
                           >
                             <Check size={16} />
                           </button>
@@ -421,413 +477,291 @@ const filteredStudents = students.filter((s) => {
                       </div>
                     </td>
                   </tr>
-                ))}
+                )})}
               </tbody>
             </table>
           </div>
 
-          {/* ════════════════════════════════════════
-            ADD MODAL
-        ════════════════════════════════════════ */}
           {modal === "add" && (
-            <div className="modal-overlay" onClick={closeModal}>
-              <div className="modal-box" onClick={(e) => e.stopPropagation()}>
-                <div className="modal-header">
-                  <h2 className="modal-title">Add Fee Record</h2>
-                  <button className="modal-close-btn" onClick={closeModal}>
-                    <X size={18} />
-                  </button>
-                </div>
-                {error && <div className="form-error">{error}</div>}
-                <form onSubmit={handleAddFee}>
-                  <FormField label="Student">
-                    <select
-                      className="admin-input"
-                      value={formData.student_id}
-                      onChange={(e) => {
-                        const student = students.find(
-                          (s) => s._id === e.target.value,
-                        );
-
-                        setFormData((prev) => ({
-                          ...prev,
-                          student_id: e.target.value,
-                          department: student?.department || "",
-                        }));
-                      }}
-                      required
-                    >
-                      <option value="">— Select student —</option>
-
-                      {students.map((s) => (
-                        <option key={s._id} value={s._id}>
-                          {s.name} ({s.user_id})
-                        </option>
-                      ))}
-                    </select>
-                  </FormField>
-
-                  <FormField label="Department">
-                    <input
-                      type="text"
-                      className="admin-input"
-                      value={formData.department}
-                      readOnly
-                    />
-                  </FormField>
-
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "1fr 1fr",
-                      gap: "0.75rem",
-                    }}
-                  >
-                    <FormField label="Amount (₹)">
-                      <input
-                        type="number"
-                        className="admin-input"
-                        placeholder="5000"
-                        min="0"
-                        value={formData.amount}
-                        onChange={setField("amount")}
-                        required
-                      />
-                    </FormField>
-                    <FormField label="Status">
-                      <select
-                        className="admin-input"
-                        value={formData.status}
-                        onChange={setField("status")}
-                      >
-                        <option>Pending</option>
-                        <option>Paid</option>
-                        <option>Overdue</option>
-                      </select>
-                    </FormField>
-                  </div>
-
-                  <FormField label="Due Date">
-                    <input
-                      type="date"
-                      className="admin-input"
-                      value={formData.due_date}
-                      onChange={setField("due_date")}
-                      required
-                    />
-                  </FormField>
-
-                  <FormField label="Description">
-                    <input
-                      type="text"
-                      className="admin-input"
-                      placeholder="e.g. Tuition Fee – Term 1"
-                      value={formData.description}
-                      onChange={setField("description")}
-                    />
-                  </FormField>
-
-                  <button
-                    type="submit"
-                    className="admin-submit-btn"
-                    style={{ width: "100%", marginTop: "0.75rem" }}
-                    disabled={loading}
-                  >
-                    {loading ? "Saving…" : "Add Fee Record"}
-                  </button>
-                </form>
-              </div>
-            </div>
-          )}
-
-          {/* ════════════════════════════════════════
-            EDIT MODAL
-        ════════════════════════════════════════ */}
-          {modal === "edit" && (
-            <div className="modal-overlay" onClick={closeModal}>
-              <div className="modal-box" onClick={(e) => e.stopPropagation()}>
-                <div className="modal-header">
-                  <h2 className="modal-title">Edit Fee Record</h2>
-                  <button className="modal-close-btn" onClick={closeModal}>
-                    <X size={18} />
-                  </button>
-                </div>
-                {error && <div className="form-error">{error}</div>}
-                <form onSubmit={handleEditFee}>
-                  {/* Student — read-only in edit to prevent re-assigning */}
-                  <FormField label="Student">
-                    <select
-                      className="admin-input"
-                      value={formData.student_id}
-                      onChange={(e) => {
-                        const student = students.find(
-                          (s) => s._id === e.target.value,
-                        );
-
-                        setFormData((prev) => ({
-                          ...prev,
-                          student_id: e.target.value,
-                          department: student?.department || "",
-                        }));
-                      }}
-                      required
-                    >
-                      <option value="">— Select student —</option>
-
-                      {students.map((s) => (
-                        <option key={s._id} value={s._id}>
-                          {s.name} ({s.user_id})
-                        </option>
-                      ))}
-                    </select>
-                  </FormField>
-
-                  <FormField label="Department">
-                    <input
-                      type="text"
-                      className="admin-input"
-                      value={formData.department}
-                      readOnly
-                    />
-                  </FormField>
-
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "1fr 1fr",
-                      gap: "0.75rem",
-                    }}
-                  >
-                    <FormField label="Amount (₹)">
-                      <input
-                        type="number"
-                        className="admin-input"
-                        min="0"
-                        value={formData.amount}
-                        onChange={setField("amount")}
-                        required
-                      />
-                    </FormField>
-                    <FormField label="Status">
-                      <select
-                        className="admin-input"
-                        value={formData.status}
-                        onChange={setField("status")}
-                      >
-                        <option>Pending</option>
-                        <option>Paid</option>
-                        <option>Overdue</option>
-                      </select>
-                    </FormField>
-                  </div>
-
-                  <FormField label="Due Date">
-                    <input
-                      type="date"
-                      className="admin-input"
-                      value={formData.due_date}
-                      onChange={setField("due_date")}
-                      required
-                    />
-                  </FormField>
-
-                  <FormField label="Description">
-                    <input
-                      type="text"
-                      className="admin-input"
-                      placeholder="e.g. Tuition Fee – Term 1"
-                      value={formData.description}
-                      onChange={setField("description")}
-                    />
-                  </FormField>
-
-                  <hr className="modal-divider" />
-
-                  <div className="admin-field-row">
-                    <FormField label="Payment Date">
-                      <input
-                        type="date"
-                        className="admin-input"
-                        value={formData.payment_date}
-                        onChange={setField("payment_date")}
-                      />
-                    </FormField>
-                    <FormField label="Transaction ID">
-                      <input
-                        type="text"
-                        className="admin-input"
-                        placeholder="TXN123456"
-                        value={formData.transaction_id}
-                        onChange={setField("transaction_id")}
-                      />
-                    </FormField>
-                  </div>
-
-                  <button
-                    type="submit"
-                    className="admin-submit-btn"
-                    style={{ width: "100%", marginTop: "0.75rem" }}
-                    disabled={loading}
-                  >
-                    {loading ? "Updating…" : "Update Fee Record"}
-                  </button>
-                </form>
-              </div>
-            </div>
-          )}
-
-          {/* ════════════════════════════════════════
-            BULK ADD MODAL
-        ════════════════════════════════════════ */}
-          {modal === "bulk" && (
-            <div className="modal-overlay" onClick={closeModal}>
-              <div
-                className="modal-box modal-box--wide"
-                onClick={(e) => e.stopPropagation()}
+            <div className="modal-overlay" onClick={closeModal} style={{ padding: "1rem" }}>
+              <div 
+                className="modal-box" 
+                onClick={(e) => e.stopPropagation()} 
+                style={{ 
+                  padding: 0, 
+                  overflow: "hidden", 
+                  maxWidth: "480px", 
+                  background: "#0f172a", 
+                  border: "1px solid rgba(255,255,255,0.08)", 
+                  boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5)" 
+                }}
               >
-                <div className="modal-header">
-                  <h2 className="modal-title">Bulk Add Fee Records</h2>
-                  <button className="modal-close-btn" onClick={closeModal}>
-                    <X size={18} />
-                  </button>
-                </div>
-                {error && <div className="form-error">{error}</div>}
-
-                {/* ⚠ The outer element is NOT a <form> to avoid nested-form HTML violation.
-                  The submit button inside calls handleBulkAdd via onClick. */}
-                <div className="bulk-modal-grid">
-                  {/* ── LEFT: student picker ── */}
-                  <div>
-                    <p className="bulk-section-label">
-                      Select Students&nbsp;
-                      <span
-                        style={{ color: "var(--color-text)", fontWeight: 700 }}
-                      >
-                        ({bulkForm.student_ids.length} selected)
-                      </span>
-                    </p>
-
-                    <input
-                      className="admin-input"
-                      placeholder="Search by name or ID…"
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                      style={{ marginBottom: "0.5rem" }}
-                    />
-
-                    <div className="student-list">
-                      <label className="student-check-row student-check-row--all">
-                        <input
-                          type="checkbox"
-                          checked={allVisible}
-                          onChange={toggleAll}
-                        />
-                        <span
-                          className="student-name"
-                          style={{ fontWeight: 600 }}
-                        >
-                          Select all visible
-                        </span>
-                      </label>
-                      {filteredStudents.length === 0 && (
-                        <p className="empty-state" style={{ padding: "1rem" }}>
-                          No students found.
-                        </p>
-                      )}
-                      {filteredStudents.map((s) => (
-                        <label key={s._id} className="student-check-row">
-                          <input
-                            type="checkbox"
-                            checked={bulkForm.student_ids.includes(s._id)}
-                            onChange={() => toggleStudent(s._id)}
-                          />
-                          <div>
-                            <p className="student-name">{s.name}</p>
-                            <p className="student-id">{s.user_id}</p>
-                          </div>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* ── RIGHT: fee details — plain <form> (not nested) ── */}
-                  <form onSubmit={handleBulkAdd}>
-                    <p className="bulk-section-label">
-                      Fee Details (applied to all selected)
-                    </p>
-                    {/* ── Updated Bulk Department Field ── */}
-                  <FormField label="Department">
-  <select
-    className="admin-input"
-    value={bulkForm.department}
-    onChange={setBulkField("department")}
-    required
-  >
-    <option value="">-- Select Department --</option>
-
-    {[...new Set(students.map((s) => s.department))].map((dept) => (
-      <option key={dept} value={dept}>
-        {dept}
-      </option>
-    ))}
-  </select>
-</FormField>
-
-                    <div className="admin-field-row">
-                      <FormField label="Amount (₹)">
-                        <input
-                          type="number"
-                          className="admin-input"
-                          placeholder="5000"
-                          min="0"
-                          value={bulkForm.amount}
-                          onChange={setBulkField("amount")}
-                          required
-                        />
-                      </FormField>
-                      <FormField label="Status">
-                        <select
-                          className="admin-input"
-                          value={bulkForm.status}
-                          onChange={setBulkField("status")}
-                        >
-                          <option>Pending</option>
-                          <option>Paid</option>
-                          <option>Overdue</option>
-                        </select>
-                      </FormField>
-                    </div>
-
-                    <FormField label="Due Date">
-                      <input
-                        type="date"
-                        className="admin-input"
-                        value={bulkForm.due_date}
-                        onChange={setBulkField("due_date")}
-                        required
-                      />
-                    </FormField>
-                    {/* department */}
-                    <FormField label="Description">
-                      <input
-                        type="text"
-                        className="admin-input"
-                        placeholder="e.g. Tuition Fee – Term 1"
-                        value={bulkForm.description}
-                        onChange={setBulkField("description")}
-                      />
-                    </FormField>
-
-                    <button
-                      type="submit"
-                      className="admin-submit-btn admin-submit-btn--accent"
-                      style={{ width: "100%", marginTop: "0.75rem" }}
-                      disabled={loading || bulkForm.student_ids.length === 0}
-                    >
-                      {loading
-                        ? "Creating…"
-                        : `Create ${bulkForm.student_ids.length || 0} Fee Record${bulkForm.student_ids.length !== 1 ? "s" : ""}`}
+                <div style={{ padding: "1.5rem 1.5rem 1rem", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <h2 style={{ margin: 0, fontSize: "1.25rem", fontWeight: 700, color: "#f8fafc" }}>Add Fee Record</h2>
+                    <button onClick={closeModal} style={{ background: "none", border: "none", color: "#94a3b8", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: "0.25rem", borderRadius: "0.375rem" }} onMouseEnter={(e) => e.currentTarget.style.color = "#f8fafc"} onMouseLeave={(e) => e.currentTarget.style.color = "#94a3b8"}>
+                      <X size={20} />
                     </button>
+                  </div>
+                  <p style={{ margin: "0.5rem 0 0", fontSize: "0.875rem", color: "#94a3b8" }}>Create a new individual fee record for a student.</p>
+                </div>
+
+                <div style={{ padding: "1.5rem", maxHeight: "calc(100vh - 12rem)", overflowY: "auto" }}>
+                  {error && (
+                    <div style={{ padding: "0.75rem", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "8px", color: "#ef4444", fontSize: "0.875rem", marginBottom: "1.25rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                      <AlertCircle size={16} /> {error}
+                    </div>
+                  )}
+
+                  <form onSubmit={handleAddFee} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                      <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>Student</label>
+                      <select
+                        style={{ width: "100%", padding: "0.75rem 1rem", background: "#1e293b", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#f8fafc", fontSize: "0.95rem", outline: "none", appearance: "none" }}
+                        value={formData.student_id}
+                        onChange={(e) => {
+                          const student = students.find((s) => s._id === e.target.value);
+                          setFormData((prev) => ({ 
+                            ...prev, 
+                            student_id: e.target.value, 
+                            department: student?.department || "",
+                            semester: student?.semester || 1
+                          }));
+                        }}
+                        required
+                      >
+                        <option value="">— Select student —</option>
+                        {students.map((s) => (
+                          <option key={s._id} value={s._id}>{s.name} ({s.user_id})</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                        <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>Department</label>
+                        <input type="text" style={{ width: "100%", padding: "0.75rem 1rem", background: "rgba(30,41,59,0.5)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: "8px", color: "#94a3b8", fontSize: "0.95rem", outline: "none", boxSizing: "border-box" }} value={formData.department} readOnly />
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                        <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>Semester</label>
+                        <select style={{ width: "100%", padding: "0.75rem 1rem", background: "rgba(30,41,59,0.5)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: "8px", color: "#94a3b8", fontSize: "0.95rem", outline: "none", appearance: "none" }} value={formData.semester} disabled>
+                          {[1, 2, 3, 4, 5, 6].map((sem) => <option key={sem} value={sem}>Semester {sem}</option>)}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                        <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>Amount (₹)</label>
+                        <input type="number" placeholder="5000" min="0" style={{ width: "100%", padding: "0.75rem 1rem", background: "#1e293b", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#f8fafc", fontSize: "0.95rem", outline: "none", boxSizing: "border-box" }} value={formData.amount} onChange={setField("amount")} required />
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                        <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>Due Date</label>
+                        <input type="date" style={{ width: "100%", padding: "0.75rem 1rem", background: "#1e293b", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#f8fafc", fontSize: "0.95rem", outline: "none", boxSizing: "border-box" }} value={formData.due_date} onChange={setField("due_date")} required />
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                      <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>Description</label>
+                      <input type="text" placeholder="e.g. Tuition Fee – Term 1" style={{ width: "100%", padding: "0.75rem 1rem", background: "#1e293b", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#f8fafc", fontSize: "0.95rem", outline: "none", boxSizing: "border-box" }} value={formData.description} onChange={setField("description")} />
+                    </div>
+
+                    <div style={{ marginTop: "1rem", paddingTop: "1.25rem", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+                      <button type="submit" disabled={loading} style={{ width: "100%", padding: "0.875rem", background: "linear-gradient(135deg, #10b981, #059669)", color: "white", border: "none", borderRadius: "8px", fontSize: "0.95rem", fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1, transition: "opacity 0.2s" }}>
+                        {loading ? "Saving…" : "Add Fee Record"}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {modal === "edit" && (
+            <div className="modal-overlay" onClick={closeModal} style={{ padding: "1rem" }}>
+              <div 
+                className="modal-box" 
+                onClick={(e) => e.stopPropagation()} 
+                style={{ 
+                  padding: 0, 
+                  overflow: "hidden", 
+                  maxWidth: "480px", 
+                  background: "#0f172a", 
+                  border: "1px solid rgba(255,255,255,0.08)", 
+                  boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5)" 
+                }}
+              >
+                <div style={{ padding: "1.5rem 1.5rem 1rem", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <h2 style={{ margin: 0, fontSize: "1.25rem", fontWeight: 700, color: "#f8fafc" }}>Edit Fee Record</h2>
+                    <button onClick={closeModal} style={{ background: "none", border: "none", color: "#94a3b8", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: "0.25rem", borderRadius: "0.375rem" }} onMouseEnter={(e) => e.currentTarget.style.color = "#f8fafc"} onMouseLeave={(e) => e.currentTarget.style.color = "#94a3b8"}>
+                      <X size={20} />
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{ padding: "1.5rem", maxHeight: "calc(100vh - 12rem)", overflowY: "auto" }}>
+                  {error && (
+                    <div style={{ padding: "0.75rem", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "8px", color: "#ef4444", fontSize: "0.875rem", marginBottom: "1.25rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                      <AlertCircle size={16} /> {error}
+                    </div>
+                  )}
+
+                  <form onSubmit={handleEditFee} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                      <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>Student</label>
+                      <select style={{ width: "100%", padding: "0.75rem 1rem", background: "rgba(30,41,59,0.5)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: "8px", color: "#94a3b8", fontSize: "0.95rem", outline: "none", appearance: "none" }} value={formData.student_id} disabled>
+                        <option value="">— Select student —</option>
+                        {students.map((s) => <option key={s._id} value={s._id}>{s.name} ({s.user_id})</option>)}
+                      </select>
+                    </div>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                        <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>Department</label>
+                        <input type="text" style={{ width: "100%", padding: "0.75rem 1rem", background: "rgba(30,41,59,0.5)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: "8px", color: "#94a3b8", fontSize: "0.95rem", outline: "none", boxSizing: "border-box" }} value={formData.department} readOnly />
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                        <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>Semester</label>
+                        <select style={{ width: "100%", padding: "0.75rem 1rem", background: "rgba(30,41,59,0.5)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: "8px", color: "#94a3b8", fontSize: "0.95rem", outline: "none", appearance: "none" }} value={formData.semester} disabled>
+                          {[1, 2, 3, 4, 5, 6].map((sem) => <option key={sem} value={sem}>Semester {sem}</option>)}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                        <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>Total Amount (₹)</label>
+                        <input type="number" min="0" style={{ width: "100%", padding: "0.75rem 1rem", background: "#1e293b", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#f8fafc", fontSize: "0.95rem", outline: "none", boxSizing: "border-box" }} value={formData.amount} onChange={setField("amount")} required />
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                        <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>Due Date</label>
+                        <input type="date" style={{ width: "100%", padding: "0.75rem 1rem", background: "#1e293b", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#f8fafc", fontSize: "0.95rem", outline: "none", boxSizing: "border-box" }} value={formData.due_date} onChange={setField("due_date")} required />
+                      </div>
+                    </div>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem", padding: "1rem", background: "rgba(16,185,129,0.03)", border: "1px dashed rgba(16,185,129,0.3)", borderRadius: "8px" }}>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                        <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "#10b981", textTransform: "uppercase", letterSpacing: "0.05em" }}>Paid Amount (₹)</label>
+                        <input type="number" min="0" style={{ width: "100%", padding: "0.75rem 1rem", background: "#1e293b", border: "1px solid rgba(16,185,129,0.4)", borderRadius: "8px", color: "#10b981", fontSize: "0.95rem", outline: "none", boxSizing: "border-box" }} value={formData.paid_amount} onChange={setField("paid_amount")} required />
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                        <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>Remaining (₹)</label>
+                        <input type="number" style={{ width: "100%", padding: "0.75rem 1rem", background: "rgba(30,41,59,0.5)", border: "1px solid transparent", borderRadius: "8px", color: ((formData.amount || 0) - (formData.paid_amount || 0)) > 0 ? '#ef4444' : '#10b981', fontWeight: 700, fontSize: "0.95rem", outline: "none", boxSizing: "border-box" }} value={(formData.amount || 0) - (formData.paid_amount || 0)} readOnly />
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                      <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>Description</label>
+                      <input type="text" style={{ width: "100%", padding: "0.75rem 1rem", background: "#1e293b", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#f8fafc", fontSize: "0.95rem", outline: "none", boxSizing: "border-box" }} value={formData.description} onChange={setField("description")} />
+                    </div>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                        <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>Payment Date</label>
+                        <input type="date" style={{ width: "100%", padding: "0.75rem 1rem", background: "#1e293b", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#f8fafc", fontSize: "0.95rem", outline: "none", boxSizing: "border-box" }} value={formData.payment_date} onChange={setField("payment_date")} />
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                        <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>Transaction ID</label>
+                        <input type="text" placeholder="TXN123..." style={{ width: "100%", padding: "0.75rem 1rem", background: "#1e293b", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#f8fafc", fontSize: "0.95rem", outline: "none", boxSizing: "border-box" }} value={formData.transaction_id} onChange={setField("transaction_id")} />
+                      </div>
+                    </div>
+
+                    <div style={{ marginTop: "0.5rem", paddingTop: "1.25rem", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+                      <button type="submit" disabled={loading} style={{ width: "100%", padding: "0.875rem", background: "linear-gradient(135deg, #3b82f6, #2563eb)", color: "white", border: "none", borderRadius: "8px", fontSize: "0.95rem", fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1, transition: "opacity 0.2s" }}>
+                        {loading ? "Updating…" : "Update Fee Record"}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {modal === "bulk" && (
+            <div className="modal-overlay" onClick={closeModal} style={{ padding: "1rem" }}>
+              <div 
+                className="modal-box" 
+                onClick={(e) => e.stopPropagation()} 
+                style={{ 
+                  padding: 0, 
+                  overflow: "hidden", 
+                  maxWidth: "480px", 
+                  background: "#0f172a", 
+                  border: "1px solid rgba(255,255,255,0.08)", 
+                  boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5)" 
+                }}
+              >
+                <div style={{ padding: "1.5rem 1.5rem 1rem", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                      <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: "rgba(59,130,246,0.1)", color: "#3b82f6", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <Users size={18} />
+                      </div>
+                      <h2 style={{ margin: 0, fontSize: "1.25rem", fontWeight: 700, color: "#f8fafc" }}>Create Fees Rule</h2>
+                    </div>
+                    <button onClick={closeModal} style={{ background: "none", border: "none", color: "#94a3b8", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: "0.25rem", borderRadius: "0.375rem" }} onMouseEnter={(e) => e.currentTarget.style.color = "#f8fafc"} onMouseLeave={(e) => e.currentTarget.style.color = "#94a3b8"}>
+                      <X size={20} />
+                    </button>
+                  </div>
+                  <p style={{ margin: "1rem 0 0", fontSize: "0.875rem", color: "#94a3b8", lineHeight: "1.5" }}>Automatically assign a new fee record to an entire batch of students by department and semester.</p>
+                </div>
+
+                <div style={{ padding: "1.5rem", maxHeight: "calc(100vh - 12rem)", overflowY: "auto" }}>
+                  {error && (
+                    <div style={{ padding: "0.75rem", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "8px", color: "#ef4444", fontSize: "0.875rem", marginBottom: "1.25rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                      <AlertCircle size={16} /> {error}
+                    </div>
+                  )}
+
+                  {bulkForm.department && bulkForm.semester && (
+                    <div style={{ padding: "0.75rem 1rem", background: "rgba(56,189,248,0.05)", border: "1px dashed rgba(56,189,248,0.3)", borderRadius: "8px", color: "#38bdf8", fontSize: "0.875rem", marginBottom: "1.25rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                      <Check size={16} /> Will apply to {students.filter(s => s.department === bulkForm.department && s.semester === Number(bulkForm.semester)).length} matching student(s).
+                    </div>
+                  )}
+
+                  <form onSubmit={handleBulkAdd} style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1.25rem" }}>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                        <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>Target Department</label>
+                        <select style={{ width: "100%", padding: "0.75rem 1rem", background: "#1e293b", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#f8fafc", fontSize: "0.95rem", outline: "none", appearance: "none" }} value={bulkForm.department} onChange={setBulkField("department")} required>
+                          <option value="">— Select Department —</option>
+                          {DEPARTMENTS.map((dept) => <option key={dept} value={dept}>{dept}</option>)}
+                        </select>
+                      </div>
+                      
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                        <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>Target Semester</label>
+                        <select style={{ width: "100%", padding: "0.75rem 1rem", background: "#1e293b", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#f8fafc", fontSize: "0.95rem", outline: "none", appearance: "none", opacity: !bulkForm.department ? 0.5 : 1 }} value={bulkForm.semester} onChange={setBulkField("semester")} required disabled={!bulkForm.department}>
+                          <option value="">— Select Semester —</option>
+                          {[1, 2, 3, 4, 5, 6].map((sem) => <option key={sem} value={sem}>Semester {sem}</option>)}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div style={{ height: "1px", background: "rgba(255,255,255,0.05)", margin: "0.5rem 0" }}></div>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                        <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>Total Amount (₹)</label>
+                        <input type="number" placeholder="25000" min="0" style={{ width: "100%", padding: "0.75rem 1rem", background: "#1e293b", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#f8fafc", fontSize: "0.95rem", outline: "none", boxSizing: "border-box" }} value={bulkForm.amount} onChange={setBulkField("amount")} required />
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                        <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>Due Date</label>
+                        <input type="date" style={{ width: "100%", padding: "0.75rem 1rem", background: "#1e293b", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#f8fafc", fontSize: "0.95rem", outline: "none", boxSizing: "border-box" }} value={bulkForm.due_date} onChange={setBulkField("due_date")} required />
+                      </div>
+                    </div>
+
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                      <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>Description (Optional)</label>
+                      <input type="text" placeholder="e.g. Annual Semester Fees" style={{ width: "100%", padding: "0.75rem 1rem", background: "#1e293b", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#f8fafc", fontSize: "0.95rem", outline: "none", boxSizing: "border-box" }} value={bulkForm.description} onChange={setBulkField("description")} />
+                    </div>
+
+                    <div style={{ marginTop: "1rem", paddingTop: "1.25rem", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+                      <button type="submit" disabled={loading} style={{ width: "100%", padding: "0.875rem", background: "linear-gradient(135deg, #8b5cf6, #6d28d9)", color: "white", border: "none", borderRadius: "8px", fontSize: "0.95rem", fontWeight: 700, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.7 : 1, transition: "opacity 0.2s", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
+                        {loading ? "Creating Rule…" : <><Users size={18} /> Create Fees Rule</>}
+                      </button>
+                    </div>
                   </form>
                 </div>
               </div>
@@ -878,7 +812,6 @@ function DeleteConfirmModal({ studentName, onClose, onConfirm }) {
           boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.3)"
         }}
       >
-        {/* Header */}
         <div
           style={{
             display: "flex",
@@ -921,8 +854,6 @@ function DeleteConfirmModal({ studentName, onClose, onConfirm }) {
             <X size={18} />
           </button>
         </div>
-
-        {/* Body */}
         <div style={{ padding: "0 1.5rem 1.5rem" }}>
           <p style={{ color: "var(--color-text-muted, #cbd5e1)", fontSize: "0.95rem", lineHeight: "1.5", margin: 0 }}>
             Are you sure you want to delete the fee record for student <strong style={{ color: "var(--color-text, #f8fafc)" }}>"{studentName}"</strong>?
@@ -931,8 +862,6 @@ function DeleteConfirmModal({ studentName, onClose, onConfirm }) {
             ⚠️ This action is permanent and cannot be undone.
           </p>
         </div>
-
-        {/* Footer */}
         <div
           style={{
             display: "flex",
@@ -997,8 +926,6 @@ function DeleteConfirmModal({ studentName, onClose, onConfirm }) {
     </div>
   );
 }
-
-// ─── small reusable pieces ────────────────────────────────────────────────────
 
 function FormField({ label, children }) {
   return (
