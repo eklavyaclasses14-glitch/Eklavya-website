@@ -63,7 +63,6 @@ const Landing = () => {
           {/* Desktop Nav Links */}
           <nav className="desktop-nav">
             <a href="#features" className="nav-link">Features</a>
-            <a href="#portals" className="nav-link">Portal Showcase</a>
             <a href="#faqs" className="nav-link">FAQs</a>
             <a href="#contact" className="nav-link">Contact</a>
           </nav>
@@ -115,7 +114,7 @@ const Landing = () => {
         <div className="hero-content">
           <div className="hero-badge">
             <span className="badge-pulse"></span>
-            <span>Version 2.0 Management Suite</span>
+            <span>Eklavya Engineering classes</span>
           </div>
           <h1 className="hero-title">
             Digital Learning.<br />
@@ -204,24 +203,14 @@ const Landing = () => {
               <div className="mini-note-item">
                 <div className="mini-note-icon">PDF</div>
                 <div className="mini-note-details">
-                  <span className="mini-note-title">Thermodynamics_Lec3.pdf</span>
-                  <span className="mini-note-size">4.2 MB • Physics</span>
+                  <span className="mini-note-title">Web Development.pdf</span>
                 </div>
                 <span className="mini-download-badge">Download</span>
               </div>
               <div className="mini-note-item">
-                <div className="mini-note-icon docx">DOCX</div>
+                <div className="mini-note-icon docx">pdf</div>
                 <div className="mini-note-details">
-                  <span className="mini-note-title">Calculus_Sheet_4.docx</span>
-                  <span className="mini-note-size">1.8 MB • Mathematics</span>
-                </div>
-                <span className="mini-download-badge">Download</span>
-              </div>
-              <div className="mini-note-item">
-                <div className="mini-note-icon zip">ZIP</div>
-                <div className="mini-note-details">
-                  <span className="mini-note-title">Data_Structures_Labs.zip</span>
-                  <span className="mini-note-size">18.5 MB • Computer Science</span>
+                  <span className="mini-note-title">App Development.docx</span>
                 </div>
                 <span className="mini-download-badge">Download</span>
               </div>
@@ -263,7 +252,7 @@ const Landing = () => {
           </div>
 
           {/* Card 3: Medium Feature (Transparent Fee Tracking) */}
-          <div className="bento-card card-medium">
+          <div className="bento-card card-small">
             <div className="bento-content">
               <div className="bento-icon-box">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="bento-icon">
@@ -275,18 +264,6 @@ const Landing = () => {
               <p className="bento-card-desc">
                 Track outstanding tuition balances, check detailed semester fee statements, and review payment history with ease.
               </p>
-            </div>
-            {/* Visual payment receipt bar */}
-            <div className="bento-visual payment-preview">
-              <div className="mini-receipt">
-                <div className="receipt-header">
-                  <span>Semester Fee Record</span>
-                  <span className="status-paid-badge">Paid</span>
-                </div>
-                <div className="receipt-divider"></div>
-                <div className="receipt-amount">₹11,000.00</div>
-                <span className="receipt-date">Updated on May 15, 2026</span>
-              </div>
             </div>
           </div>
 
@@ -372,7 +349,7 @@ const Landing = () => {
               <div className="tab-pane-mockup student-mockup">
                 <div className="mockup-header">
                   <div className="mockup-dots"><span></span><span></span><span></span></div>
-                  <span className="mockup-url">Eklavya/student/dashboard</span>
+                  <span className="mockup-url">eklavyaengineeringclasses.in/</span>
                 </div>
                 <div className="mockup-body">
                   <div className="mockup-hero-stat">
@@ -383,23 +360,12 @@ const Landing = () => {
 
                   <div className="mockup-list-title">My Recent Subject Notes</div>
                   <div className="mockup-list-item">
-                    <span className="mockup-item-tag physics">Physics</span>
-                    <span className="mockup-item-name font-semibold">Quantum Mechanics I</span>
-                    <span className="mockup-item-btn">Get PDF</span>
+                    <span className="mockup-item-tag physics">Web</span>
+                    <span className="mockup-item-name font-semibold">React.js</span>
                   </div>
                   <div className="mockup-list-item">
-                    <span className="mockup-item-tag math">Math</span>
-                    <span className="mockup-item-name font-semibold">Linear Algebra Worksheet</span>
-                    <span className="mockup-item-btn">Get DOCX</span>
-                  </div>
-
-                  <div className="mockup-list-title">Fee Summary</div>
-                  <div className="mockup-fee-card">
-                    <div className="mockup-fee-info">
-                      <span className="fee-card-head">Tuition Balance</span>
-                      <span className="fee-card-val">₹11,000.00</span>
-                    </div>
-                    <span className="mockup-paid-tag">Paid in Full</span>
+                    <span className="mockup-item-tag math">App</span>
+                    <span className="mockup-item-name font-semibold">Flutter</span>
                   </div>
                 </div>
               </div>
@@ -433,7 +399,7 @@ const Landing = () => {
               <div className="tab-pane-mockup instructor-mockup">
                 <div className="mockup-header">
                   <div className="mockup-dots"><span></span><span></span><span></span></div>
-                  <span className="mockup-url">Eklavya/staff/dashboard</span>
+                  <span className="mockup-url">eklavyaengineeringclasses.in/</span>
                 </div>
                 <div className="mockup-body">
                   <div className="mockup-row">
@@ -495,7 +461,7 @@ const Landing = () => {
               <div className="tab-pane-mockup admin-mockup">
                 <div className="mockup-header">
                   <div className="mockup-dots"><span></span><span></span><span></span></div>
-                  <span className="mockup-url">Eklavya/admin/dashboard</span>
+                  <span className="mockup-url">eklavyaengineeringclasses.in/</span>
                 </div>
                 <div className="mockup-body">
                   <div className="mockup-row-triple">
@@ -562,7 +528,7 @@ const Landing = () => {
 
           <div className="faq-item">
             <button className={`faq-trigger ${openFaq === 1 ? 'active' : ''}`} onClick={() => toggleFaq(1)}>
-              <span className="faq-question">How does role-based security validation function?</span>
+              <span className="faq-question">Are demo classes available before admission?</span>
               <span className="faq-chevron-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="6 9 12 15 18 9"></polyline>
@@ -571,14 +537,14 @@ const Landing = () => {
             </button>
             <div className={`faq-answer-container ${openFaq === 1 ? 'expanded' : ''}`}>
               <div className="faq-answer">
-                Eklavya enforces solid security validation by using JSON Web Tokens (JWT) stored safely inside cookies/auth states. When you login as either Student, Staff, or Admin, the application grants view permissions strictly tailored to your security scope, preventing unauthorized dashboard access.
+                Yes, students can attend a free demo class to understand our teaching methodology before enrolling.
               </div>
             </div>
           </div>
 
           <div className="faq-item">
             <button className={`faq-trigger ${openFaq === 2 ? 'active' : ''}`} onClick={() => toggleFaq(2)}>
-              <span className="faq-question">Who can upload classroom notes and documents?</span>
+              <span className="faq-question">Who can join the coaching classes?</span>
               <span className="faq-chevron-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="6 9 12 15 18 9"></polyline>
@@ -587,14 +553,14 @@ const Landing = () => {
             </button>
             <div className={`faq-answer-container ${openFaq === 2 ? 'expanded' : ''}`}>
               <div className="faq-answer">
-                Designated administrators can securely upload educational notes, attach study documents, select relevant subjects from the database, and publish them. Students can instantly access and download these files from their student dashboard.
+                Students from Classes 9 to 12 preparing for engineering entrance exams or strengthening their science and mathematics concepts can join.
               </div>
             </div>
           </div>
 
           <div className="faq-item">
             <button className={`faq-trigger ${openFaq === 3 ? 'active' : ''}`} onClick={() => toggleFaq(3)}>
-              <span className="faq-question">Is the fee processing engine integrated with the database?</span>
+              <span className="faq-question">How are doubts solved during the course?</span>
               <span className="faq-chevron-icon">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="6 9 12 15 18 9"></polyline>
@@ -603,7 +569,7 @@ const Landing = () => {
             </button>
             <div className={`faq-answer-container ${openFaq === 3 ? 'expanded' : ''}`}>
               <div className="faq-answer">
-                Absolutely. Administrative coordinators edit fee parameters for specific student accounts directly inside the portal. The student dashboard updates automatically with transparent transaction records.
+                Dedicated doubt-solving sessions are conducted regularly, and students can also ask questions directly during classes.
               </div>
             </div>
           </div>

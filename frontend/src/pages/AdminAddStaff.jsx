@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import AdminLayout from "../components/AdminLayout";
 import { apiFetch } from "../utils/apiFetch";
-import { UserPlus, Trash2, User, Mail, Lock, AlertCircle, CheckCircle2, ArrowLeft } from "lucide-react";
+import { UserPlus, Trash2, User, Mail, Lock, AlertCircle, CheckCircle2, ArrowLeft, Phone } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import "../styles/AdminForms.css";
 
@@ -19,6 +19,10 @@ const VALIDATORS = {
     test: (v) => v.length >= 6,
     msg: 'Password must be at least 6 characters',
   },
+  contact: {
+    test: (v) => v.trim() === "" || /^\+?[\d\s-]{10,15}$/.test(v.trim()),
+    msg: 'Enter a valid contact number',
+  },
 };
 
 export default function AdminAddStaff() {
@@ -27,6 +31,7 @@ export default function AdminAddStaff() {
   const [form, setForm] = useState({
     name: "",
     email: "",
+    contact: "",
     password: "",
   });
   const [errors, setErrors] = useState({});
@@ -85,13 +90,13 @@ export default function AdminAddStaff() {
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      setTouched({ name: true, email: true, password: true });
+      setTouched({ name: true, email: true, contact: true, password: true });
       return;
     }
 
     setSubmitting(true);
     try {
-      const res = await apiFetch("http://localhost:5000/api/admin/staff", {
+      const res = await apiFetch("/api/admin/staff", {
         method: "POST",
         body: JSON.stringify(form),
       });
@@ -99,7 +104,7 @@ export default function AdminAddStaff() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to create staff");
 
-      setForm({ name: "", email: "", password: "" });
+      setForm({ name: "", email: "", contact: "", password: "" });
       setTouched({});
       setErrors({});
       setMessage({ text: "Staff created successfully!", type: "success" });
@@ -116,7 +121,7 @@ export default function AdminAddStaff() {
     if (!window.confirm("Delete this staff member?")) return;
 
     try {
-      const res = await apiFetch(`http://localhost:5000/api/admin/staff/${id}`, {
+      const res = await apiFetch(`/api/admin/staff/${id}`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Failed to delete staff");
@@ -199,6 +204,25 @@ export default function AdminAddStaff() {
 
               <div className="admin-field-group">
                 <label className="admin-field-label">
+                  <Phone size={13} /> Contact
+                </label>
+                <input
+                  name="contact"
+                  type="text"
+                  className={fieldClass('contact')}
+                  placeholder="+1 234 567 8900"
+                  value={form.contact}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  autoComplete="off"
+                />
+                {errors.contact && touched.contact && (
+                  <span className="admin-field-error"><AlertCircle size={12} /> {errors.contact}</span>
+                )}
+              </div>
+
+              <div className="admin-field-group">
+                <label className="admin-field-label">
                   <Lock size={13} /> Password <span className="admin-field-label-required">*</span>
                 </label>
                 <input
@@ -257,7 +281,7 @@ export default function AdminAddStaff() {
                       </div>
                       <div className="admin-student-info" style={{ flex: 1 }}>
                         <div className="admin-student-name" style={{ fontSize: '0.9rem' }}>{staff.name}</div>
-                        <div className="admin-student-enr" style={{ fontSize: '0.8rem' }}>{staff.email}</div>
+                        <div className="admin-student-enr" style={{ fontSize: '0.8rem' }}>{staff.email} • {staff.contact || "No contact"}</div>
                       </div>
                       <button
                         onClick={() => handleDelete(staff._id)}

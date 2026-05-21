@@ -29,12 +29,12 @@ router.post('/',
       return res.status(400).json({ error: errors.array()[0].msg });
     }
 
-    const { name, email, password } = req.body;
+    const { name, email, password, contact } = req.body;
 
     const exists = await Staff.findOne({ email });
     if (exists) return res.status(400).json({ error: 'Staff already exists' });
 
-    const staff = await Staff.create({ name, email, password });
+    const staff = await Staff.create({ name, email, password, contact });
     res.status(201).json(staff);
   }
 );
