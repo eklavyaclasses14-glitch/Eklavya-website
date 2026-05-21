@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Hero3D from '../components/Hero3D';
+import { MapPin, Phone, Sparkles } from "lucide-react";
 import '../styles/Landing.css';
 
 const Landing = () => {
@@ -194,7 +195,7 @@ const Landing = () => {
               </div>
               <h3 className="bento-card-title">Structured Notes Vault</h3>
               <p className="bento-card-desc">
-                Organize, upload, and download syllabus documents and structured study guides. Supports rich tags, file categories, and quick downloads.
+                Access well-structured academic resources including syllabus materials, subject notes, and study guides — organized with smart categories, searchable tags, and seamless quick preview support.
               </p>
             </div>
 
@@ -205,14 +206,12 @@ const Landing = () => {
                 <div className="mini-note-details">
                   <span className="mini-note-title">Web Development.pdf</span>
                 </div>
-                <span className="mini-download-badge">Download</span>
               </div>
               <div className="mini-note-item">
-                <div className="mini-note-icon docx">pdf</div>
+                <div className="mini-note-icon docx">IMG</div>
                 <div className="mini-note-details">
-                  <span className="mini-note-title">App Development.docx</span>
+                  <span className="mini-note-title">App Development.img</span>
                 </div>
-                <span className="mini-download-badge">Download</span>
               </div>
             </div>
           </div>
@@ -285,7 +284,7 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Interactive Tabs Showcase Section */}
+      {/* Interactive Tabs Showcase Section
       <section id="portals" className="portals-showcase-section">
         <div className="section-header">
           <span className="section-tag">Role Capability</span>
@@ -499,7 +498,7 @@ const Landing = () => {
             </div>
           )}
         </div>
-      </section>
+      </section> */}
 
       {/* Interactive Collapsible FAQ Accordion Section */}
       <section id="faqs" className="faqs-section">
@@ -576,48 +575,33 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Newsletter / Call-to-Action Panel Section */}
+      {/* Scratch Card Contact Section */}
       <section id="contact" className="newsletter-section">
         <div className="newsletter-card">
           <div className="newsletter-card-glow"></div>
-          <div className="newsletter-content">
-            <h2 className="newsletter-title">Subscribe for Portal Upgrades</h2>
-            <p className="newsletter-desc">
-              Receive direct releases, new platform features, framework updates, and security announcements from Eklavya core teams.
-            </p>
-
-            {subscribed ? (
-              <div className="newsletter-success-box">
-                <div className="success-icon-box">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="success-svg">
-                    <polyline points="20 6 9 17 4 12"></polyline>
-                  </svg>
+          <div className="newsletter-content scratch-wrapper">
+            <div className="scratch-card-container">
+              <div className="scratch-card-content">
+                <div className="scratch-info-group">
+                  <h4><MapPin size={18} /> Eklavya Engineering Classes</h4>
+                  <p>1st floor, Athwa Arcade, M17, Near Athwa Arcade BRTS, Athwa Gate, Surat, Gujarat 395001</p>
                 </div>
-                <div className="success-msg-wrap">
-                  <span className="success-headline">Successfully Subscribed!</span>
-                  <span className="success-subtitle">We will notify you at your email.</span>
+                <div className="scratch-info-group">
+                  <h4><Phone size={18} /> Contact Numbers</h4>
+                  <p>+91 95861 68989</p>
+                  <p>+91 99249 71360</p>
                 </div>
               </div>
-            ) : (
-              <form onSubmit={handleSubscribe} className="newsletter-form">
-                <input
-                  type="email"
-                  placeholder="Enter your administrative email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="newsletter-input"
-                  aria-label="Email Address"
-                />
-                <button type="submit" className="btn-newsletter">
-                  Subscribe
-                </button>
-              </form>
-            )}
+              <div className="scratch-card-cover">
+                <div className="scratch-cover-inner">
+                  <Sparkles className="scratch-icon" />
+                  <span>Hover to reveal Contact Details</span>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+        </div> 
       </section>
-
       {/* Upgraded Multi-Column Footer */}
       <footer className="landing-footer">
         <div className="footer-top">
@@ -645,12 +629,6 @@ const Landing = () => {
               <button onClick={() => { navigate('/login'); }} className="footer-link-btn">Student Access</button>
               <button onClick={() => { navigate('/login'); }} className="footer-link-btn">Staff Terminals</button>
               <button onClick={() => { navigate('/login'); }} className="footer-link-btn">Admin Portal</button>
-            </div>
-            <div className="footer-links-col">
-              <span className="col-title">Security</span>
-              <a href="#" className="footer-link">JWT Policy</a>
-              <a href="#" className="footer-link">Data Integrity</a>
-              <a href="#" className="footer-link">Terms of Access</a>
             </div>
           </div>
         </div>
