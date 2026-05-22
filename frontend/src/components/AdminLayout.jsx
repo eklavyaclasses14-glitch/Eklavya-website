@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Users, User, BookOpen, UploadCloud, LogOut, Menu, X, UserPlus, UserCheck, FileText, CalendarCheck, DollarSign } from 'lucide-react';
+import { apiFetch } from '../utils/apiFetch';
 import '../styles/AdminLayout.css';
 
 export default function AdminLayout({ children }) {
@@ -37,7 +38,12 @@ export default function AdminLayout({ children }) {
     };
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await apiFetch('api/auth/logout', { method: 'POST' });
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
     localStorage.removeItem('user');
     localStorage.removeItem('token');
     navigate('/login');

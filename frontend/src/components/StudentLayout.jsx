@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, FileText, LogOut, Menu, X, CalendarCheck, DollarSign, User } from 'lucide-react';
+import { apiFetch } from '../utils/apiFetch';
 import '../styles/StudentLayout.css';
 
 export default function StudentLayout({ children }) {
@@ -10,7 +11,12 @@ export default function StudentLayout({ children }) {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const student = user?.user || {};
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await apiFetch('api/auth/logout', { method: 'POST' });
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
     localStorage.removeItem('user');
     localStorage.removeItem('token');
     navigate('/login');

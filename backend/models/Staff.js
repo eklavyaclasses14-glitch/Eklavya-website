@@ -10,6 +10,8 @@ const StaffSchema = new mongoose.Schema({
   role: { type: String, enum: ['staff', 'admin'], default: 'staff' },
   resetPasswordToken: { type: String, select: false },
   resetPasswordExpire: { type: Date, select: false },
+  sessionToken: { type: String, select: false },
+  sessionExpiresAt: { type: Date, select: false },
 }, { timestamps: true });
 
 StaffSchema.pre('save', async function () {

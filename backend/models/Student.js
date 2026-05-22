@@ -12,6 +12,8 @@ const StudentSchema = new mongoose.Schema({
   parent_contact:  { type: String, default: '' },
   resetPasswordToken: { type: String, select: false },
   resetPasswordExpire: { type: Date, select: false },
+  sessionToken: { type: String, select: false },
+  sessionExpiresAt: { type: Date, select: false },
 }, { timestamps: true });
 
 // Hash password before saving

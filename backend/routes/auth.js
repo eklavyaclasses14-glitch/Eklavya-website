@@ -29,16 +29,16 @@ router.post('/login',
       const normalizedEmail = email.toLowerCase().trim();
 
       // 1. Try finding in primary User collection
-      let account = await User.findOne({ email: normalizedEmail }).select('+password');
+      let account = await User.findOne({ email: normalizedEmail }).select('+password +sessionToken +sessionExpiresAt');
 
       // 2. Fallback to Staff collection
       if (!account) {
-        account = await Staff.findOne({ email: normalizedEmail }).select('+password');
+        account = await Staff.findOne({ email: normalizedEmail }).select('+password +sessionToken +sessionExpiresAt');
       }
 
       // 3. Fallback to Student collection
       if (!account) {
-        account = await Student.findOne({ email: normalizedEmail }).select('+password');
+        account = await Student.findOne({ email: normalizedEmail }).select('+password +sessionToken +sessionExpiresAt');
         if (account) account.role = 'student'; // Ensure role is set for students
       }
 
@@ -56,9 +56,22 @@ router.post('/login',
         return res.status(401).json({ error: 'Invalid email or password' });
       }
 
-      // 4. Generate JWT
+      // 4. Check for active session
+      if (account.sessionToken && account.sessionExpiresAt && account.sessionExpiresAt > Date.now()) {
+        const { logAuthAttempt } = require('../utils/logger');
+        logAuthAttempt(normalizedEmail, false, account.role, { reason: 'Concurrent login blocked', ip: req.ip });
+        return res.status(403).json({ error: 'Account is already logged in on another device. Please log out from the other device or wait until the session expires.' });
+      }
+
+      // 5. Generate and save new session
+      const sessionToken = crypto.randomBytes(16).toString('hex');
+      account.sessionToken = sessionToken;
+      account.sessionExpiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 hours
+      await account.save();
+
+      // 6. Generate JWT
       const token = jwt.sign(
-        { id: account._id, role: account.role },
+        { id: account._id, role: account.role, sessionToken },
         process.env.JWT_SECRET,
         { expiresIn: '2h' }
       );
@@ -90,6 +103,31 @@ router.post('/login',
     }
   }
 );
+
+// ── POST /api/auth/logout ────────────────────────────────────────────────────
+// Protected. Clears the active session for the user.
+router.post('/logout', protect, async (req, res) => {
+  try {
+    let account = await User.findById(req.user.id).select('+sessionToken +sessionExpiresAt');
+    if (!account) {
+      account = await Staff.findById(req.user.id).select('+sessionToken +sessionExpiresAt');
+    }
+    if (!account) {
+      account = await Student.findById(req.user.id).select('+sessionToken +sessionExpiresAt');
+    }
+
+    if (account) {
+      account.sessionToken = undefined;
+      account.sessionExpiresAt = undefined;
+      await account.save();
+    }
+
+    res.json({ message: 'Logged out successfully' });
+  } catch (err) {
+    console.error('[Auth] Logout error:', err);
+    res.status(500).json({ error: 'Server error during logout' });
+  }
+});
 
 // ── GET /api/auth/me ─────────────────────────────────────────────────────────
 // Protected. Returns current user data.

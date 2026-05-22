@@ -65,6 +65,8 @@ const userSchema = new mongoose.Schema(
     role:     { type: String, default: 'student', enum: ['admin', 'student'] },
     resetPasswordToken: { type: String, select: false },
     resetPasswordExpire: { type: Date, select: false },
+    sessionToken: { type: String, select: false },
+    sessionExpiresAt: { type: Date, select: false },
   },
   { timestamps: true }
 );
