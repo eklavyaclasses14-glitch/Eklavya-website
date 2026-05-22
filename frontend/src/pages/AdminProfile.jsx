@@ -56,7 +56,7 @@ function PasswordStrength({ password }) {
     <div className="ap-strength">
       <div className="ap-strength-bars">
         {[1, 2, 3, 4, 5].map(i => (
-          <div key={i} className={`ap-strength-bar${i <= score ? ` ${STRENGTH_CLASSES[score]}` : ''}`} />
+          <div key={`bar-${i}`} className={`ap-strength-bar${i <= score ? ` ${STRENGTH_CLASSES[score]}` : ''}`} />
         ))}
       </div>
       <span className={`ap-strength-label ${STRENGTH_CLASSES[score]}`}>{STRENGTH_LABELS[score]}</span>
@@ -341,7 +341,7 @@ export default function AdminProfile() {
               )}
               {activityLog.map((entry, i) => (
                 <ActivityEntry
-                  key={i}
+                  key={entry.id || `activity-${i}`}
                   icon={entry.icon}
                   action={entry.action}
                   detail={entry.detail}

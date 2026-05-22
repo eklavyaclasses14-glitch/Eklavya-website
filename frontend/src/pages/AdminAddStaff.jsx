@@ -166,10 +166,11 @@ export default function AdminAddStaff() {
             <form onSubmit={handleSubmit} className="admin-form-card-body" noValidate>
               
               <div className="admin-field-group">
-                <label className="admin-field-label">
+                <label htmlFor="staff-name" className="admin-field-label">
                   <User size={13} /> Name <span className="admin-field-label-required">*</span>
                 </label>
                 <input
+                  id="staff-name"
                   name="name"
                   className={fieldClass('name')}
                   placeholder="e.g. John Doe"
@@ -184,10 +185,11 @@ export default function AdminAddStaff() {
               </div>
 
               <div className="admin-field-group">
-                <label className="admin-field-label">
+                <label htmlFor="staff-email" className="admin-field-label">
                   <Mail size={13} /> Email <span className="admin-field-label-required">*</span>
                 </label>
                 <input
+                  id="staff-email"
                   name="email"
                   type="email"
                   className={fieldClass('email')}
@@ -203,10 +205,11 @@ export default function AdminAddStaff() {
               </div>
 
               <div className="admin-field-group">
-                <label className="admin-field-label">
+                <label htmlFor="staff-contact" className="admin-field-label">
                   <Phone size={13} /> Contact
                 </label>
                 <input
+                  id="staff-contact"
                   name="contact"
                   type="text"
                   className={fieldClass('contact')}
@@ -222,10 +225,11 @@ export default function AdminAddStaff() {
               </div>
 
               <div className="admin-field-group">
-                <label className="admin-field-label">
+                <label htmlFor="staff-password" className="admin-field-label">
                   <Lock size={13} /> Password <span className="admin-field-label-required">*</span>
                 </label>
                 <input
+                  id="staff-password"
                   name="password"
                   type="password"
                   className={fieldClass('password')}

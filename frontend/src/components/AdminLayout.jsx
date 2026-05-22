@@ -103,7 +103,14 @@ export default function AdminLayout({ children }) {
 
         {/* User / Logout */}
         <div className="admin-sidebar-footer">
-          <div className="admin-sidebar-user" onClick={handleLogout} title="Logout">
+          <div 
+            className="admin-sidebar-user" 
+            onClick={handleLogout} 
+            title="Logout"
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && handleLogout()}
+          >
             <div className="admin-sidebar-avatar">
               {user.avatar ? (
                 <img src={user.avatar} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
@@ -135,7 +142,13 @@ export default function AdminLayout({ children }) {
             <div>
               <p style={{ fontSize: '0.8125rem', fontWeight: 600, textAlign: 'right' }}>{user.name || 'Administrator'}</p>
             </div>
-            <div className="admin-header-avatar" onClick={() => navigate('/admin/profile')}>
+            <div 
+              className="admin-header-avatar" 
+              onClick={() => navigate('/admin/profile')}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && navigate('/admin/profile')}
+            >
               {user.avatar ? (
                 <img src={user.avatar} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
               ) : (

@@ -174,9 +174,9 @@ export default function StudentFees() {
                 </span>
               </h3>
               <div style={{ display: "flex", alignItems: "center", gap: "1.5rem", marginTop: "0.5rem", color: "var(--color-text-muted)", fontSize: "0.9rem" }}>
-                <span style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                <span suppressHydrationWarning style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
                   <Calendar size={14} /> 
-                  Due: <strong style={{ color: "var(--color-text)", fontWeight: 600 }}>{new Date(fee.due_date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</strong>
+                  Due: <strong suppressHydrationWarning style={{ color: "var(--color-text)", fontWeight: 600 }}>{new Date(fee.due_date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</strong>
                 </span>
               </div>
             </div>

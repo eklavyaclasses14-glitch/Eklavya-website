@@ -4,6 +4,59 @@ import { Home, FileText, LogOut, Menu, X, CalendarCheck, DollarSign, User } from
 import { apiFetch } from '../utils/apiFetch';
 import '../styles/StudentLayout.css';
 
+const SidebarContent = ({ navItems, location, goTo, setDrawerOpen, avatarUrl, student, handleLogout }) => (
+  <>
+    {/* Brand */}
+    <div className="student-sidebar-brand">
+      <div className="student-sidebar-brand-icon" style={{ background: 'transparent', boxShadow: 'none' }}>
+        <img src="/eklavya-logo.png" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+      </div>
+      <div>
+        <div className="student-sidebar-brand-title">Eklavya Portal</div>
+        <div className="student-sidebar-brand-sub">Student Access</div>
+      </div>
+      {/* Close button — only visible inside mobile drawer */}
+      <button
+        className="student-sidebar-close-btn"
+        onClick={() => setDrawerOpen(false)}
+        aria-label="Close menu"
+      >
+        <X size={20} />
+      </button>
+    </div>
+
+    {/* Nav */}
+    <nav className="student-sidebar-nav">
+      {navItems.map(item => {
+        const isActive = location.pathname === item.path;
+        return (
+          <button
+            key={item.path}
+            onClick={() => goTo(item.path)}
+            className={`student-nav-btn ${isActive ? 'active' : ''}`}
+          >
+            {item.icon}
+            {item.label}
+          </button>
+        );
+      })}
+    </nav>
+
+    {/* User footer */}
+    <div className="student-sidebar-footer">
+      <div className="student-sidebar-user">
+        <div className="student-sidebar-avatar">
+          <img src={avatarUrl} alt={student.name} />
+        </div>
+        <span className="student-sidebar-name">{student.name || 'Student'}</span>
+        <button className="student-sidebar-logout" onClick={handleLogout} title="Logout">
+          <LogOut size={16} />
+        </button>
+      </div>
+    </div>
+  </>
+);
+
 export default function StudentLayout({ children }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const navigate = useNavigate();
@@ -39,73 +92,27 @@ export default function StudentLayout({ children }) {
   };
 
   // ── Sidebar inner content (shared by desktop + mobile drawer) ──
-  const SidebarContent = () => (
-    <>
-      {/* Brand */}
-      <div className="student-sidebar-brand">
-        <div className="student-sidebar-brand-icon" style={{ background: 'transparent', boxShadow: 'none' }}>
-          <img src="/eklavya-logo.png" alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-        </div>
-        <div>
-          <div className="student-sidebar-brand-title">Eklavya Portal</div>
-          <div className="student-sidebar-brand-sub">Student Access</div>
-        </div>
-        {/* Close button — only visible inside mobile drawer */}
-        <button
-          className="student-sidebar-close-btn"
-          onClick={() => setDrawerOpen(false)}
-          aria-label="Close menu"
-        >
-          <X size={20} />
-        </button>
-      </div>
-
-      {/* Nav */}
-      <nav className="student-sidebar-nav">
-        {navItems.map(item => {
-          const isActive = location.pathname === item.path;
-          return (
-            <button
-              key={item.path}
-              onClick={() => goTo(item.path)}
-              className={`student-nav-btn ${isActive ? 'active' : ''}`}
-            >
-              {item.icon}
-              {item.label}
-            </button>
-          );
-        })}
-      </nav>
-
-      {/* User footer */}
-      <div className="student-sidebar-footer">
-        <div className="student-sidebar-user">
-          <div className="student-sidebar-avatar">
-            <img src={avatarUrl} alt={student.name} />
-          </div>
-          <span className="student-sidebar-name">{student.name || 'Student'}</span>
-          <button className="student-sidebar-logout" onClick={handleLogout} title="Logout">
-            <LogOut size={16} />
-          </button>
-        </div>
-      </div>
-    </>
-  );
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: 'var(--color-background)' }}>
 
       {/* ── Desktop Sidebar ── */}
       <aside className="student-sidebar">
-        <SidebarContent />
+        <SidebarContent navItems={navItems} location={location} goTo={goTo} setDrawerOpen={setDrawerOpen} avatarUrl={avatarUrl} student={student} handleLogout={handleLogout} />
       </aside>
 
       {/* ── Mobile Drawer ── */}
       {drawerOpen && (
-        <div className="student-overlay" onClick={() => setDrawerOpen(false)} />
+        <div 
+          className="student-overlay" 
+          onClick={() => setDrawerOpen(false)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => e.key === 'Enter' && setDrawerOpen(false)}
+        />
       )}
       <aside className={`student-drawer ${drawerOpen ? 'open' : ''}`}>
-        <SidebarContent />
+        <SidebarContent navItems={navItems} location={location} goTo={goTo} setDrawerOpen={setDrawerOpen} avatarUrl={avatarUrl} student={student} handleLogout={handleLogout} />
       </aside>
 
       {/* ── Main Area ── */}
