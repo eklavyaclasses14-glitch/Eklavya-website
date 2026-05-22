@@ -154,6 +154,9 @@ export default function AdminProfile() {
       window.dispatchEvent(new Event('profileUpdated'))
       addLog({ icon: '✏️', action: 'Updated profile', detail: `Name set to ${profile.name}` })
       
+      // User explicitly requested form fields to clear after saving
+      setProfile({ name: '', email: '', avatar: '' })
+      
       showToast('Profile updated successfully')
     } catch (err) {
       console.error('Profile update failed via API, updating locally...', err)
@@ -166,6 +169,8 @@ export default function AdminProfile() {
 
       window.dispatchEvent(new Event('profileUpdated'))
       addLog({ icon: '✏️', action: 'Updated profile (local)', detail: profile.name })
+      
+      setProfile({ name: '', email: '', avatar: '' })
       showToast('Profile updated locally')
     } finally { setProfileBusy(false) }
   }
