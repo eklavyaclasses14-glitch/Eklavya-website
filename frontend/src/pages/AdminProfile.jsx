@@ -91,7 +91,11 @@ function Toast({ toast }) {
 export default function AdminProfile() {
   const stored = getStored()
 
-  const [profile, setProfile] = useState({ name: '', email: '', avatar: '' })
+  const [profile, setProfile] = useState({ 
+    name: stored?.user?.name || '', 
+    email: stored?.user?.email || '', 
+    avatar: stored?.user?.avatar || '' 
+  })
   const [passwords, setPasswords] = useState({ current: '', next: '', confirm: '' })
   const [showPw, setShowPw] = useState(false)
   const [profileBusy, setProfileBusy] = useState(false)
@@ -143,25 +147,25 @@ export default function AdminProfile() {
         body: JSON.stringify(cleanProfile),
       })
 
-      const updatedUser = { ...stored, ...cleanProfile }
+      const updatedUser = { ...stored, user: { ...stored.user, ...cleanProfile } }
       localStorage.setItem('user', JSON.stringify(updatedUser))
 
       console.log('[AdminProfile] Dispatching profileUpdated event...');
       window.dispatchEvent(new Event('profileUpdated'))
       addLog({ icon: '✏️', action: 'Updated profile', detail: `Name set to ${profile.name}` })
-      setProfile({ name: '', email: '', avatar: '' })
+      
       showToast('Profile updated successfully')
     } catch (err) {
+      console.error('Profile update failed via API, updating locally...', err)
       const cleanProfile = {
         ...profile,
         avatar: (profile.avatar || '').trim()
       }
-      const updatedUser = { ...stored, ...cleanProfile }
+      const updatedUser = { ...stored, user: { ...stored.user, ...cleanProfile } }
       localStorage.setItem('user', JSON.stringify(updatedUser))
 
       window.dispatchEvent(new Event('profileUpdated'))
       addLog({ icon: '✏️', action: 'Updated profile (local)', detail: profile.name })
-      setProfile({ name: '', email: '', avatar: '' })
       showToast('Profile updated locally')
     } finally { setProfileBusy(false) }
   }
