@@ -8,7 +8,8 @@ export default function AdminLayout({ children }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [user, setUser] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem('user')) || {};
+      const stored = JSON.parse(localStorage.getItem('user')) || {};
+      return stored.user || {};
     } catch {
       return {};
     }
@@ -23,7 +24,7 @@ export default function AdminLayout({ children }) {
       console.log('[AdminLayout] Syncing user data from localStorage...');
       try {
         const stored = JSON.parse(localStorage.getItem('user')) || {};
-        setUser(stored);
+        setUser(stored.user || {});
       } catch (err) {
         console.error('[AdminLayout] Sync error:', err);
       }
