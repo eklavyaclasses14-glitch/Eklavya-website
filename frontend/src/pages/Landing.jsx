@@ -181,36 +181,49 @@ const Landing = () => {
         </div>
 
         <div className="bento-grid">
-          {/* Card 1: Large Feature (Structured Notes Directory) */}
+          {/* Card 1: Large Feature (Role-Tailored Workspaces) */}
           <div className="bento-card card-large">
             <div className="bento-content">
               <div className="bento-icon-box">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="bento-icon">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                  <polyline points="14 2 14 8 20 8"></polyline>
-                  <line x1="16" y1="13" x2="8" y2="13"></line>
-                  <line x1="16" y1="17" x2="8" y2="17"></line>
-                  <polyline points="10 9 9 9 8 9"></polyline>
+                  <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                  <polyline points="2 12 12 17 22 12"></polyline>
+                  <polyline points="2 17 12 22 22 17"></polyline>
                 </svg>
               </div>
-              <h3 className="bento-card-title">Structured Notes Vault</h3>
+              <h3 className="bento-card-title">Role-Tailored Digital Workspaces</h3>
               <p className="bento-card-desc">
-                Access well-structured academic resources including syllabus materials, subject notes, and study guides — organized with smart categories, searchable tags, and seamless quick preview support.
+                Experience tailor-made environments engineered explicitly for administrators, staff, and students—ensuring every user interacts only with the tools they need for maximum productivity.
               </p>
             </div>
 
             {/* Visual Preview element in large card */}
-            <div className="bento-visual notes-vault-preview">
-              <div className="mini-note-item">
-                <div className="mini-note-icon">PDF</div>
+            <div className="bento-visual notes-vault-preview" style={{ flexDirection: 'column', gap: '0.75rem' }}>
+              <div className="mini-note-item" style={{ borderLeft: '3px solid #8b5cf6', background: 'var(--color-surface)' }}>
+                <div className="mini-note-icon" style={{ background: 'rgba(139,92,246,0.2)', color: '#8b5cf6', padding: '0.4rem', borderRadius: '8px' }}>
+                   <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                </div>
                 <div className="mini-note-details">
-                  <span className="mini-note-title">Web Development.pdf</span>
+                  <span className="mini-note-title" style={{ color: '#fff' }}>Administrator Portal</span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Full System Control</span>
                 </div>
               </div>
-              <div className="mini-note-item">
-                <div className="mini-note-icon docx">IMG</div>
+              <div className="mini-note-item" style={{ borderLeft: '3px solid #f59e0b', background: 'var(--color-surface)' }}>
+                <div className="mini-note-icon" style={{ background: 'rgba(245,158,11,0.2)', color: '#f59e0b', padding: '0.4rem', borderRadius: '8px' }}>
+                   <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                </div>
                 <div className="mini-note-details">
-                  <span className="mini-note-title">App Development.img</span>
+                  <span className="mini-note-title" style={{ color: '#fff' }}>Staff Dashboard</span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Class & Attendance Management</span>
+                </div>
+              </div>
+              <div className="mini-note-item" style={{ borderLeft: '3px solid #10b981', background: 'var(--color-surface)' }}>
+                <div className="mini-note-icon" style={{ background: 'rgba(16,185,129,0.2)', color: '#10b981', padding: '0.4rem', borderRadius: '8px' }}>
+                   <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+                </div>
+                <div className="mini-note-details">
+                  <span className="mini-note-title" style={{ color: '#fff' }}>Student Workspace</span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Academic & Fee Tracking</span>
                 </div>
               </div>
             </div>
