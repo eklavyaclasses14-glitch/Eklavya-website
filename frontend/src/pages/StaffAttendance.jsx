@@ -45,12 +45,12 @@ export default function StaffAttendance() {
   // ─── INITIAL LOAD ────────────────────────────────────────────────────────────
   useEffect(() => {
     Promise.all([
-      apiFetch("/api/admin/students").then((r) => r.json()),
+      apiFetch("/api/admin/students?limit=1000").then((r) => r.json()),
       apiFetch("/api/admin/subjects").then((r) => r.json()),
     ])
       .then(([studentsData, subjectsData]) => {
-        setStudents(studentsData);
-        setSubjects(subjectsData);
+        setStudents(studentsData.students || []);
+        setSubjects(subjectsData || []);
       })
       .catch(console.error);
   }, []);

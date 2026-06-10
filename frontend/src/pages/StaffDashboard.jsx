@@ -15,11 +15,11 @@ export default function StaffDashboard() {
 
   useEffect(() => {
     Promise.all([
-      apiFetch('http://localhost:5000/api/admin/students').then(r => r.json()),
-      apiFetch('http://localhost:5000/api/admin/subjects').then(r => r.json()),
+      apiFetch('/api/admin/students').then(r => r.json()),
+      apiFetch('/api/admin/subjects').then(r => r.json()),
     ]).then(([studentsData, subjectsData]) => {
-      setStudents(studentsData);
-      setSubjects(subjectsData);
+      setStudents(studentsData.students || []);
+      setSubjects(subjectsData || []);
     }).catch(console.error);
   }, []);
 
