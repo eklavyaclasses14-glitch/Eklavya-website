@@ -5,6 +5,20 @@ const Note = require('../models/Note');
 const Attendance = require('../models/Attendance');
 const Fee = require('../models/Fee');
 const { protect, enforceStudentOwnership } = require('../middleware/auth');
+const https = require('https');
+const { PDFDocument, rgb, degrees } = require('pdf-lib');
+const Jimp = require('jimp');
+const rateLimit = require('express-rate-limit');
+const DocumentAccessLog = require('../models/DocumentAccessLog');
+const crypto = require('crypto');
+const ViewToken = require('../models/ViewToken');
+
+const viewRateLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 20, // limit each IP to 20 requests per windowMs
+  message: { error: 'Too many requests, please try again later.' }
+});
+
 const router = express.Router();
 
 router.use(protect);
@@ -63,7 +77,6 @@ router.get('/:id/dashboard', enforceStudentOwnership, async (req, res) => {
         _id: n._id,
         title: n.title,
         file_type: n.file_type,
-        fileUrl: n.fileUrl || '',
         label: n.label || '',
         subject_name: n.subject_id?.subject_name || '',
       })),
@@ -195,7 +208,6 @@ router.get('/:id/notes', enforceStudentOwnership, async (req, res) => {
         title: n.title,
         label: n.label || '',
         file_type: n.file_type,
-        fileUrl: n.fileUrl || '',
         subject_id: { subject_name: n.subject_id?.subject_name || '' },
         is_common: n.is_common || false,
         exam_date: n.exam_date || null,
@@ -211,4 +223,125 @@ router.get('/:id/notes', enforceStudentOwnership, async (req, res) => {
   }
 });
 
+// POST /api/student/:id/notes/:noteId/request-view
+router.post('/:id/notes/:noteId/request-view', enforceStudentOwnership, async (req, res) => {
+  try {
+    const student = await Student.findById(req.params.id);
+    const note = await Note.findById(req.params.noteId).populate('subject_id');
+    if (!student || !note) return res.status(404).json({ error: 'Not found' });
+
+    if (!note.is_common) {
+      if (note.subject_id.department !== student.department || note.subject_id.semester !== student.semester) {
+         return res.status(403).json({ error: 'Unauthorized access to this document' });
+      }
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    await ViewToken.create({
+      token,
+      student_id: student._id,
+      note_id: note._id
+    });
+
+    res.json({ viewToken: token });
+  } catch (err) {
+    res.status(500).json({ error: 'Server error generating token' });
+  }
+});
+
+// GET /api/student/:id/notes/:noteId/view
+router.get('/:id/notes/:noteId/view', enforceStudentOwnership, viewRateLimiter, async (req, res) => {
+  try {
+    const clientToken = req.header('X-View-Token');
+    if (!clientToken) return res.status(400).json({ error: 'Missing View Token' });
+
+    // Atomically find and delete the token to ensure single use
+    const viewTokenRecord = await ViewToken.findOneAndDelete({
+      token: clientToken,
+      student_id: req.params.id,
+      note_id: req.params.noteId
+    });
+
+    if (!viewTokenRecord) {
+      return res.status(403).json({ error: 'Token expired or already consumed' });
+    }
+
+    const student = await Student.findById(req.params.id);
+    const note = await Note.findById(req.params.noteId).populate('subject_id');
+    if (!student || !note) return res.status(404).json({ error: 'Not found' });
+
+    // Log access
+    await DocumentAccessLog.create({
+      student_id: student._id,
+      note_id: note._id,
+      ip_address: req.ip || req.connection?.remoteAddress || 'unknown'
+    });
+
+    const fileUrl = note.fileUrl;
+    if (!fileUrl) return res.status(404).json({ error: 'File not found' });
+
+    // Set Secure Headers
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Content-Disposition', 'inline; filename="document"');
+
+    const watermarkText = `${student.name || 'Student'} - ${student.email || ''} - ${new Date().toISOString()}`;
+
+    // Fetch from Cloudinary and process
+    https.get(fileUrl, (response) => {
+      if (response.statusCode !== 200) {
+        return res.status(500).json({ error: 'Error fetching file from storage' });
+      }
+
+      const chunks = [];
+      response.on('data', chunk => chunks.push(chunk));
+      response.on('end', async () => {
+        const buffer = Buffer.concat(chunks);
+        
+        try {
+          if (note.file_type === 'pdf') {
+            res.setHeader('Content-Type', 'application/pdf');
+            const pdfDoc = await PDFDocument.load(buffer);
+            const pages = pdfDoc.getPages();
+            for (const page of pages) {
+              const { width, height } = page.getSize();
+              page.drawText(watermarkText, {
+                x: 50,
+                y: height / 2,
+                size: 24,
+                color: rgb(0.75, 0.75, 0.75),
+                rotate: degrees(45),
+                opacity: 0.5,
+              });
+            }
+            const pdfBytes = await pdfDoc.save();
+            return res.end(Buffer.from(pdfBytes));
+          } else {
+            // Image
+            res.setHeader('Content-Type', response.headers['content-type'] || 'image/jpeg');
+            const image = await Jimp.read(buffer);
+            const font = await Jimp.loadFont(Jimp.FONT_SANS_32_WHITE);
+            // Print at bottom left
+            image.print(font, 20, image.bitmap.height - 50, watermarkText);
+            const imgBuffer = await image.getBufferAsync(Jimp.MIME_JPEG);
+            return res.end(imgBuffer);
+          }
+        } catch (procErr) {
+          console.error('[Watermarking Error]:', procErr);
+          return res.status(500).json({ error: 'Error processing document' });
+        }
+      });
+    }).on('error', (err) => {
+      console.error('[Network Error]:', err);
+      res.status(500).json({ error: 'Network error fetching document' });
+    });
+
+  } catch (err) {
+    console.error('[Document View Error]', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 module.exports = router;
+

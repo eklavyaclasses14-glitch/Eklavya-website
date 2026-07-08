@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import StudentLayout from '../components/StudentLayout';
+import ProtectedViewer from '../components/ProtectedViewer';
 import { BookOpen, Clock, FileText, File, Image, Sun, CalendarCheck, DollarSign } from 'lucide-react';
 import { apiFetch } from '../utils/apiFetch';
 import '../styles/StudentDashboard.css';
@@ -10,6 +11,7 @@ export default function StudentDashboard() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [viewing, setViewing] = useState(null);
 
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const student = user?.user || {};
@@ -45,6 +47,9 @@ export default function StudentDashboard() {
 
   return (
     <StudentLayout>
+      {viewing && (
+        <ProtectedViewer note={viewing} onClose={() => setViewing(null)} />
+      )}
       {/* ── Welcome ── */}
       <div className="sd-welcome">
         <p className="sd-welcome-greeting" style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
@@ -118,9 +123,9 @@ export default function StudentDashboard() {
               <div 
                 key={note._id} 
                 className="sd-note-row"
-                onClick={() => note.fileUrl && window.open(note.fileUrl, '_blank')}
+                onClick={() => setViewing(note)}
                 style={{ cursor: 'pointer' }}
-                title="Click to view document"
+                title="Click to view document securely"
               >
                 <div className={`sd-note-icon ${note.file_type === 'pdf' ? 'pdf' : 'image'}`}>
                   {note.file_type === 'pdf'
