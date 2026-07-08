@@ -32,8 +32,10 @@ export default function ProtectedViewer({ note, onClose }) {
         
         if (!studentId || !token) throw new Error('Not authenticated');
 
+        const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+
         // Step 1: Request a single-use view token
-        const requestRes = await fetch(`http://localhost:5000/api/student/${studentId}/notes/${note._id}/request-view`, {
+        const requestRes = await fetch(`${BASE_URL}/api/student/${studentId}/notes/${note._id}/request-view`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${token}`
@@ -48,7 +50,7 @@ export default function ProtectedViewer({ note, onClose }) {
         const viewToken = requestData.viewToken;
 
         // Step 2: Consume the token to fetch the watermarked stream
-        const res = await fetch(`http://localhost:5000/api/student/${studentId}/notes/${note._id}/view`, {
+        const res = await fetch(`${BASE_URL}/api/student/${studentId}/notes/${note._id}/view`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'X-View-Token': viewToken
