@@ -6,9 +6,9 @@ const { logSuspiciousActivity } = require('../utils/logger');
  * Applied on all /api/* routes to block automated scrapers or DoS hammered queries.
  */
 const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per window
-  message: { error: 'Too many requests, please try again after 15 minutes.' },
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 50, // Limit each IP to 50 requests per window
+  message: { error: 'Too many requests, please try again after 5 minutes.' },
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res, next, options) => {
@@ -22,9 +22,9 @@ const globalLimiter = rateLimit({
  * Applied on auth endpoints to prevent automated credential brute-forcing.
  */
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // Limit each IP to 5 login attempts per window
-  message: { error: 'Too many login attempts, please try again after 15 minutes.' },
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 50, // Limit each IP to 50 login attempts per window
+  message: { error: 'Too many login attempts, please try again after 5 minutes.' },
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res, next, options) => {
@@ -38,9 +38,9 @@ const authLimiter = rateLimit({
  * Restricts reset-token bombings.
  */
 const passwordResetLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 3, // Limit each IP to 3 requests per window
-  message: { error: 'Too many password reset requests, please try again after 15 minutes.' },
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 50, // Limit each IP to 50 requests per window
+  message: { error: 'Too many password reset requests, please try again after 5 minutes.' },
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res, next, options) => {
@@ -54,9 +54,9 @@ const passwordResetLimiter = rateLimit({
  * Protects registration paths from automated form-spammers and database injection flooding.
  */
 const accountCreationLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // Limit each IP to 10 account creations per window
-  message: { error: 'Too many account creation attempts, please try again after 15 minutes.' },
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 50, // Limit each IP to 50 account creations per window
+  message: { error: 'Too many account creation attempts, please try again after 5 minutes.' },
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res, next, options) => {
@@ -70,9 +70,9 @@ const accountCreationLimiter = rateLimit({
  * Proactively configured to protect future computationally heavy and expensive AI API gateways from misuse.
  */
 const aiGenerationLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000, // 1 minute
-  max: 5, // Limit each IP to 5 generations per minute
-  message: { error: 'Too many AI generation requests. Please wait a moment before sending more.' },
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  max: 50, // Limit each IP to 50 generations per window
+  message: { error: 'Too many AI generation requests, please try again after 5 minutes.' },
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res, next, options) => {
