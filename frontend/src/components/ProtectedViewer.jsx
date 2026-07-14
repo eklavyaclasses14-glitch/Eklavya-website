@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { X, File, Image, ShieldOff, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react';
+import { X, File, Image, ShieldOff, ZoomIn, ZoomOut } from 'lucide-react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { useActivityTracker } from '../hooks/useActivityTracker';
 
@@ -17,7 +17,6 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/b
  */
 export default function ProtectedViewer({ note, onClose }) {
   const [numPages, setNumPages] = useState(null);
-  const [pageNumber, setPageNumber] = useState(1);
   const [scale, setScale] = useState(1.2);
   const [blobUrl, setBlobUrl] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -156,32 +155,6 @@ export default function ProtectedViewer({ note, onClose }) {
 
         {isPdf && numPages && (
           <div className="pv-controls-area">
-             {/* Pagination */}
-             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-               <button 
-                 disabled={pageNumber <= 1} 
-                 onClick={() => setPageNumber(prev => prev - 1)}
-                 style={{ background: 'none', border: 'none', color: pageNumber <= 1 ? '#475569' : '#fff', cursor: 'pointer' }}
-                 title="Previous Page"
-               >
-                 <ChevronLeft size={20} />
-               </button>
-               <span style={{ fontSize: '0.9rem', color: '#fff', minWidth: '80px', textAlign: 'center' }}>
-                 Page {pageNumber} of {numPages}
-               </span>
-               <button 
-                 disabled={pageNumber >= numPages} 
-                 onClick={() => setPageNumber(prev => prev + 1)}
-                 style={{ background: 'none', border: 'none', color: pageNumber >= numPages ? '#475569' : '#fff', cursor: 'pointer' }}
-                 title="Next Page"
-               >
-                 <ChevronRight size={20} />
-               </button>
-             </div>
-             
-             {/* Divider */}
-             <div className="pv-divider"></div>
-             
              {/* Zoom Controls */}
              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                <button 
@@ -236,21 +209,25 @@ export default function ProtectedViewer({ note, onClose }) {
         
         {!loading && !error && blobUrl && (
           isPdf ? (
-            <div style={{ display: 'inline-block', position: 'relative', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', borderRadius: '4px', overflow: 'hidden', textAlign: 'left' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <Document
                 file={blobUrl}
                 onLoadSuccess={onDocumentLoadSuccess}
                 loading={<div style={{ color: '#fff', padding: '2rem' }}>Loading PDF...</div>}
               >
-                <Page 
-                  pageNumber={pageNumber} 
-                  scale={scale} 
-                  renderTextLayer={false} // Disable text selection for security
-                  renderAnnotationLayer={false}
-                />
+                {Array.from(new Array(numPages), (el, index) => (
+                  <div key={`page_${index + 1}`} style={{ display: 'inline-block', position: 'relative', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', borderRadius: '4px', overflow: 'hidden', textAlign: 'left', marginBottom: '2rem' }}>
+                    <Page 
+                      pageNumber={index + 1} 
+                      scale={scale} 
+                      renderTextLayer={false} // Disable text selection for security
+                      renderAnnotationLayer={false}
+                    />
+                    {/* Transparent overlay over each PDF page */}
+                    <div style={{ position: 'absolute', inset: 0, zIndex: 10, cursor: 'default' }} />
+                  </div>
+                ))}
               </Document>
-              {/* Transparent overlay over the PDF page */}
-              <div style={{ position: 'absolute', inset: 0, zIndex: 10, cursor: 'default' }} />
             </div>
           ) : (
             <div style={{ display: 'inline-block', position: 'relative', maxWidth: '100%' }}>
