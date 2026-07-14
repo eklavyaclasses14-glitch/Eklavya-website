@@ -10,6 +10,61 @@ import 'react-pdf/dist/Page/TextLayer.css';
 // Set up the PDF worker
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
+function LazyPage({ pageNumber, scale }) {
+  const [hasRendered, setHasRendered] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setHasRendered(true);
+        }
+      },
+      { rootMargin: '200% 0px' } // Load when within 2 screen heights
+    );
+
+    if (ref.current) {
+      observer.observe(ref.current);
+    }
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div 
+      ref={ref} 
+      style={{ 
+        display: 'inline-block', 
+        position: 'relative', 
+        boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', 
+        borderRadius: '4px', 
+        overflow: 'hidden', 
+        textAlign: 'left', 
+        marginBottom: '2rem',
+        minHeight: hasRendered ? 'auto' : `${scale * 800}px`,
+        width: hasRendered ? 'auto' : `${scale * 600}px`,
+        background: hasRendered ? 'transparent' : 'rgba(255,255,255,0.05)',
+      }}
+    >
+      {hasRendered ? (
+        <>
+          <Page 
+            pageNumber={pageNumber} 
+            scale={scale} 
+            renderTextLayer={false} 
+            renderAnnotationLayer={false}
+          />
+          <div style={{ position: 'absolute', inset: 0, zIndex: 10, cursor: 'default' }} />
+        </>
+      ) : (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%', color: '#94a3b8' }}>
+          Loading page {pageNumber}...
+        </div>
+      )}
+    </div>
+  );
+}
+
 /**
  * ProtectedViewer
  * Renders a full-screen modal that displays a PDF (via react-pdf)
@@ -379,15 +434,7 @@ export default function ProtectedViewer({ note, onClose }) {
                 loading={<div style={{ color: '#fff', padding: '2rem' }}>Loading PDF...</div>}
               >
                 {Array.from(new Array(numPages), (el, index) => (
-                  <div key={`page_${index + 1}`} style={{ display: 'inline-block', position: 'relative', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', borderRadius: '4px', overflow: 'hidden', textAlign: 'left', marginBottom: '2rem' }}>
-                    <Page 
-                      pageNumber={index + 1} 
-                      scale={scale} 
-                      renderTextLayer={false} 
-                      renderAnnotationLayer={false}
-                    />
-                    <div style={{ position: 'absolute', inset: 0, zIndex: 10, cursor: 'default' }} />
-                  </div>
+                  <LazyPage key={`page_${index + 1}`} pageNumber={index + 1} scale={scale} />
                 ))}
               </Document>
             </div>

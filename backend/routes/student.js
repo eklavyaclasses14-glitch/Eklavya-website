@@ -22,6 +22,10 @@ const viewRateLimiter = rateLimit({
 
 const router = express.Router();
 
+// Simple in-memory cache for document buffers to avoid repeated Cloudinary downloads
+const documentBufferCache = new Map();
+const CACHE_TTL = 1000 * 60 * 60; // 1 hour
+
 router.use(protect);
 
 // GET /api/student/:id/dashboard
@@ -329,7 +333,52 @@ router.get('/:id/notes/:noteId/view', enforceStudentOwnership, viewRateLimiter, 
 
     const watermarkText = `${student.name || 'Student'} - ${student.email || ''} - ${new Date().toISOString()}`;
 
-    // Fetch from Cloudinary and process
+    const processBuffer = async (buffer) => {
+      try {
+        if (note.file_type === 'pdf') {
+          res.setHeader('Content-Type', 'application/pdf');
+          const pdfDoc = await PDFDocument.load(buffer);
+          const pages = pdfDoc.getPages();
+          for (const page of pages) {
+            const { width, height } = page.getSize();
+            page.drawText(watermarkText, {
+              x: 50,
+              y: height / 2,
+              size: 24,
+              color: rgb(0.75, 0.75, 0.75),
+              rotate: degrees(45),
+              opacity: 0.5,
+            });
+          }
+          const pdfBytes = await pdfDoc.save();
+          return res.end(Buffer.from(pdfBytes));
+        } else {
+          // Image
+          res.setHeader('Content-Type', 'image/jpeg');
+          const image = await Jimp.read(buffer);
+          const font = await Jimp.loadFont(Jimp.FONT_SANS_32_WHITE);
+          // Print at bottom left
+          image.print(font, 20, image.bitmap.height - 50, watermarkText);
+          const imgBuffer = await image.getBufferAsync(Jimp.MIME_JPEG);
+          return res.end(imgBuffer);
+        }
+      } catch (procErr) {
+        console.error('[Watermarking Error]:', procErr);
+        if (!res.headersSent) {
+          return res.status(500).json({ error: 'Error processing document' });
+        }
+      }
+    };
+
+    const noteIdStr = note._id.toString();
+    const cached = documentBufferCache.get(noteIdStr);
+    
+    // Check if we have a fresh cached buffer
+    if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
+      return processBuffer(cached.buffer);
+    }
+
+    // Otherwise fetch from Cloudinary
     https.get(fileUrl, (response) => {
       if (response.statusCode !== 200) {
         return res.status(500).json({ error: 'Error fetching file from storage' });
@@ -339,39 +388,10 @@ router.get('/:id/notes/:noteId/view', enforceStudentOwnership, viewRateLimiter, 
       response.on('data', chunk => chunks.push(chunk));
       response.on('end', async () => {
         const buffer = Buffer.concat(chunks);
-        
-        try {
-          if (note.file_type === 'pdf') {
-            res.setHeader('Content-Type', 'application/pdf');
-            const pdfDoc = await PDFDocument.load(buffer);
-            const pages = pdfDoc.getPages();
-            for (const page of pages) {
-              const { width, height } = page.getSize();
-              page.drawText(watermarkText, {
-                x: 50,
-                y: height / 2,
-                size: 24,
-                color: rgb(0.75, 0.75, 0.75),
-                rotate: degrees(45),
-                opacity: 0.5,
-              });
-            }
-            const pdfBytes = await pdfDoc.save();
-            return res.end(Buffer.from(pdfBytes));
-          } else {
-            // Image
-            res.setHeader('Content-Type', response.headers['content-type'] || 'image/jpeg');
-            const image = await Jimp.read(buffer);
-            const font = await Jimp.loadFont(Jimp.FONT_SANS_32_WHITE);
-            // Print at bottom left
-            image.print(font, 20, image.bitmap.height - 50, watermarkText);
-            const imgBuffer = await image.getBufferAsync(Jimp.MIME_JPEG);
-            return res.end(imgBuffer);
-          }
-        } catch (procErr) {
-          console.error('[Watermarking Error]:', procErr);
-          return res.status(500).json({ error: 'Error processing document' });
-        }
+        // Save to cache
+        documentBufferCache.set(noteIdStr, { buffer, timestamp: Date.now() });
+        // Process
+        processBuffer(buffer);
       });
     }).on('error', (err) => {
       console.error('[Network Error]:', err);
