@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { X, File, Image, ShieldOff, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from 'lucide-react';
 import { Document, Page, pdfjs } from 'react-pdf';
+import { useActivityTracker } from '../hooks/useActivityTracker';
 
 // Import react-pdf styles
 import 'react-pdf/dist/Page/AnnotationLayer.css';
@@ -21,6 +22,18 @@ export default function ProtectedViewer({ note, onClose }) {
   const [blobUrl, setBlobUrl] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  const { updateActivity } = useActivityTracker();
+
+  useEffect(() => {
+    if (note) {
+      updateActivity(`Reading ${note.file_type === 'pdf' ? 'PDF' : 'Image'}`, {
+        resourceType: 'note',
+        resourceId: note._id,
+        resourceName: note.title
+      }, 'viewing_document');
+    }
+  }, [note]);
 
   useEffect(() => {
     const fetchSecureDocument = async () => {

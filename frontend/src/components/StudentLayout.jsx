@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Home, FileText, LogOut, Menu, X, CalendarCheck, DollarSign, User } from 'lucide-react';
 import { apiFetch } from '../utils/apiFetch';
+import { useActivityTracker } from '../hooks/useActivityTracker';
 import '../styles/StudentLayout.css';
 
 const SidebarContent = ({ navItems, location, goTo, setDrawerOpen, avatarUrl, student, handleLogout }) => (
@@ -58,6 +59,9 @@ const SidebarContent = ({ navItems, location, goTo, setDrawerOpen, avatarUrl, st
 );
 
 export default function StudentLayout({ children }) {
+  // Initialize the global activity tracker for the student portal
+  useActivityTracker();
+  
   const [drawerOpen, setDrawerOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();

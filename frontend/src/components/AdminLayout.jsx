@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, User, BookOpen, UploadCloud, LogOut, Menu, X, UserPlus, UserCheck, FileText, CalendarCheck, DollarSign } from 'lucide-react';
+import { LayoutDashboard, Users, User, BookOpen, UploadCloud, LogOut, Menu, X, UserPlus, UserCheck, FileText, CalendarCheck, DollarSign, Activity } from 'lucide-react';
 import { apiFetch } from '../utils/apiFetch';
 import '../styles/AdminLayout.css';
 
@@ -54,6 +54,7 @@ export default function AdminLayout({ children }) {
     { label: 'Dashboard',        path: '/admin/dashboard',    icon: <LayoutDashboard size={18} /> },
     { label: 'Manage Students',  path: '/admin/students',     icon: <UserCheck size={18} /> },
     { label: 'Add Student',      path: '/admin/students/new', icon: <UserPlus size={18} /> },
+    { label: 'Live Activity',    path: '/admin/live-tracking',icon: <Activity size={18} /> },
     { label: 'Manage Documents', path: '/admin/notes',        icon: <FileText size={18} /> },
     { label: 'Upload Document',  path: '/admin/notes/upload', icon: <UploadCloud size={18} /> },
     { label: 'Manage Subjects',  path: '/admin/subjects',     icon: <BookOpen size={18} /> },

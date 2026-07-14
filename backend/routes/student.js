@@ -12,6 +12,7 @@ const rateLimit = require('express-rate-limit');
 const DocumentAccessLog = require('../models/DocumentAccessLog');
 const crypto = require('crypto');
 const ViewToken = require('../models/ViewToken');
+const ActiveSession = require('../models/ActiveSession');
 
 const viewRateLimiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
@@ -246,6 +247,46 @@ router.post('/:id/notes/:noteId/request-view', enforceStudentOwnership, async (r
     res.json({ viewToken: token });
   } catch (err) {
     res.status(500).json({ error: 'Server error generating token' });
+  }
+});
+
+// POST /api/student/heartbeat
+router.post('/heartbeat', protect, async (req, res) => {
+  try {
+    const studentId = req.user.id;
+    const { sessionId, tabId, currentRoute, pageTitle, action, status, isVisible, metadata } = req.body;
+
+    if (!sessionId || !tabId) {
+      return res.status(400).json({ error: 'Missing session identifiers' });
+    }
+
+    if (status === 'offline') {
+      // Graceful exit
+      await ActiveSession.findOneAndDelete({ student_id: studentId, session_id: sessionId, tab_id: tabId });
+      return res.json({ success: true, message: 'Session closed' });
+    }
+
+    await ActiveSession.findOneAndUpdate(
+      { student_id: studentId, session_id: sessionId, tab_id: tabId },
+      {
+        $set: {
+          current_route: currentRoute,
+          page_title: pageTitle,
+          action: action,
+          status: status || 'online',
+          is_visible: isVisible !== undefined ? isVisible : true,
+          metadata: metadata || {},
+          last_active: new Date()
+        },
+        $setOnInsert: { login_time: new Date() }
+      },
+      { upsert: true, new: true }
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Heartbeat error:', err);
+    res.status(500).json({ error: 'Failed to record heartbeat' });
   }
 });
 

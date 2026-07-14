@@ -1,6 +1,7 @@
 const express = require('express');
 const bcrypt  = require('bcryptjs');
 const Student = require('../models/Student');
+const ActiveSession = require('../models/ActiveSession');
 const { protect, staffOrAdminOnly } = require('../middleware/auth');
 const { accountCreationLimiter } = require('../middleware/rateLimiters');
 const { body, validationResult } = require('express-validator');
@@ -8,6 +9,20 @@ const router = express.Router();
 
 // All admin student routes require JWT + admin role
 router.use(protect,  staffOrAdminOnly);
+
+// GET /api/admin/active-students
+router.get('/active-students', async (req, res) => {
+  try {
+    const activeSessions = await ActiveSession.find()
+      .populate('student_id', 'name email department semester user_id student_contact')
+      .sort({ last_active: -1 });
+
+    res.json({ activeSessions });
+  } catch (err) {
+    console.error('[AdminStudents] GET /active-students error:', err);
+    res.status(500).json({ error: 'Server error fetching active students' });
+  }
+});
 
 // GET /api/admin/students
 router.get('/', async (req, res) => {
