@@ -11,28 +11,28 @@ import 'react-pdf/dist/Page/TextLayer.css';
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 function LazyPage({ pageNumber, scale }) {
-  const [hasRendered, setHasRendered] = useState(false);
-  const ref = useRef(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const [baseDim, setBaseDim] = useState({ width: 600, height: 800 }); // Guessed base unscaled dimensions
+  const containerRef = useRef(null);
+  const innerRef = useRef(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
-          setHasRendered(true);
-        }
+        setIsVisible(entry.isIntersecting);
       },
-      { rootMargin: '200% 0px' } // Load when within 2 screen heights
+      { rootMargin: '150% 0px' } // Keep 1.5 screen heights loaded in both directions
     );
 
-    if (ref.current) {
-      observer.observe(ref.current);
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
     }
     return () => observer.disconnect();
   }, []);
 
   return (
     <div 
-      ref={ref} 
+      ref={containerRef} 
       style={{ 
         display: 'inline-block', 
         position: 'relative', 
@@ -41,21 +41,35 @@ function LazyPage({ pageNumber, scale }) {
         overflow: 'hidden', 
         textAlign: 'left', 
         marginBottom: '2rem',
-        minHeight: hasRendered ? 'auto' : `${scale * 800}px`,
-        width: hasRendered ? 'auto' : `${scale * 600}px`,
-        background: hasRendered ? 'transparent' : 'rgba(255,255,255,0.05)',
+        // Instantly recalculate size based on scale, preventing scroll jumping when unmounted
+        height: `${baseDim.height * scale}px`,
+        width: `${baseDim.width * scale}px`,
+        background: 'rgba(255,255,255,0.05)',
       }}
     >
-      {hasRendered ? (
-        <>
+      {isVisible ? (
+        <div ref={innerRef} style={{ width: '100%', height: '100%' }}>
           <Page 
             pageNumber={pageNumber} 
             scale={scale} 
             renderTextLayer={false} 
             renderAnnotationLayer={false}
+            onRenderSuccess={() => {
+              if (innerRef.current) {
+                // Once rendered, calculate the exact base dimensions (at scale = 1)
+                const renderedWidth = innerRef.current.offsetWidth;
+                const renderedHeight = innerRef.current.offsetHeight;
+                if (renderedWidth && renderedHeight) {
+                  setBaseDim({
+                    width: renderedWidth / scale,
+                    height: renderedHeight / scale
+                  });
+                }
+              }
+            }}
           />
           <div style={{ position: 'absolute', inset: 0, zIndex: 10, cursor: 'default' }} />
-        </>
+        </div>
       ) : (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%', color: '#94a3b8' }}>
           Loading page {pageNumber}...
