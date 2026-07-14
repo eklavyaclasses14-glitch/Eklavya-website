@@ -46,7 +46,7 @@ const ActiveSessionSchema = new mongoose.Schema({
   last_active: {
     type: Date,
     default: Date.now,
-    expires: 300 // TTL index: document will be automatically deleted after 5 minutes (300 seconds) of inactivity
+    expires: 120 // TTL index: document will be automatically deleted after 2 minutes (120 seconds) of inactivity
   },
 }, { timestamps: { updatedAt: 'updated_at', createdAt: false } });
 

@@ -34,7 +34,7 @@ export default function AdminLiveTracking() {
     const secondsAgo = Math.floor((new Date() - new Date(session.last_active)) / 1000);
     
     let displayStatus = session.status;
-    if (secondsAgo > 300) displayStatus = 'offline';
+    if (secondsAgo > 120) displayStatus = 'offline';
     else if (secondsAgo > 90 && displayStatus === 'online') displayStatus = 'idle';
 
     if (!session.is_visible && displayStatus === 'online') displayStatus = 'background';
@@ -79,7 +79,7 @@ export default function AdminLiveTracking() {
     if (filterStatus !== 'All') {
       const secondsAgo = Math.floor((new Date() - new Date(session.last_active)) / 1000);
       let calculatedStatus = session.status;
-      if (secondsAgo > 300) calculatedStatus = 'offline';
+      if (secondsAgo > 120) calculatedStatus = 'offline';
       else if (secondsAgo > 90 && calculatedStatus === 'online') calculatedStatus = 'idle';
 
       if (filterStatus === 'Online' && calculatedStatus !== 'online') return false;
@@ -229,12 +229,12 @@ export default function AdminLiveTracking() {
           <table className="admin-table">
             <thead>
               <tr>
-                <th>Student</th>
-                <th>Department</th>
-                <th>Status</th>
-                <th>Current Page</th>
-                <th>Last Action</th>
-                <th>Last Active</th>
+                <th style={{ padding: '1.2rem 1.5rem', minWidth: '250px', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>Student</th>
+                <th style={{ padding: '1.2rem 1.5rem', minWidth: '180px', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>Department</th>
+                <th style={{ padding: '1.2rem 1.5rem', minWidth: '130px', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>Status</th>
+                <th style={{ padding: '1.2rem 1.5rem', minWidth: '200px', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>Current Page</th>
+                <th style={{ padding: '1.2rem 1.5rem', minWidth: '180px', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>Last Action</th>
+                <th style={{ padding: '1.2rem 1.5rem', minWidth: '150px', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>Last Active</th>
               </tr>
             </thead>
             <tbody>
@@ -242,7 +242,7 @@ export default function AdminLiveTracking() {
                 const s = session.student_id;
                 return (
                   <tr key={`${session.session_id}-${session.tab_id}`}>
-                    <td>
+                    <td style={{ padding: '1.2rem 1.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                         <img 
                           src={`https://ui-avatars.com/api/?name=${encodeURIComponent(s.name)}&background=4f46e5&color=fff`} 
@@ -255,22 +255,22 @@ export default function AdminLiveTracking() {
                         </div>
                       </div>
                     </td>
-                    <td>
+                    <td style={{ padding: '1.2rem 1.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                       <div>{s.department}</div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>Sem {s.semester}</div>
                     </td>
-                    <td>{getStatusBadge(session)}</td>
-                    <td>
+                    <td style={{ padding: '1.2rem 1.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>{getStatusBadge(session)}</td>
+                    <td style={{ padding: '1.2rem 1.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                       <div style={{ fontWeight: 500 }}>{session.page_title || 'Unknown'}</div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)' }}>{session.current_route}</div>
                     </td>
-                    <td>
+                    <td style={{ padding: '1.2rem 1.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         {session.metadata?.resourceType === 'note' && <FileText size={14} style={{ color: '#c084fc' }} />}
                         {session.action || 'Browsing'}
                       </div>
                     </td>
-                    <td>
+                    <td style={{ padding: '1.2rem 1.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-text-secondary)', fontSize: '0.85rem' }}>
                         <Clock size={14} />
                         {getRelativeTime(session.last_active)}
