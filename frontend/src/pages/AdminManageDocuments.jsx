@@ -456,7 +456,7 @@ export default function AdminManageDocuments() {
     const { id, title } = deleteConfirm;
     setDeleteConfirm(null);
     try {
-      await apiFetch(`http://localhost:5000/api/admin/notes/${id}`, {
+      await apiFetch(`/api/admin/notes/${id}`, {
         method: "DELETE",
       });
       setNotes((prev) => prev.filter((n) => n._id !== id));
