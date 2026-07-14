@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { X, File, Image, ShieldOff, ZoomIn, ZoomOut } from 'lucide-react';
+import { useEffect, useState, useRef, useCallback } from 'react';
+import { X, File, Image, ShieldOff, ZoomIn, ZoomOut, AlertTriangle, Check, BookOpen } from 'lucide-react';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { useActivityTracker } from '../hooks/useActivityTracker';
 
@@ -22,7 +22,18 @@ export default function ProtectedViewer({ note, onClose }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
+  // Premium Reading Features State
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [dontAskAgain, setDontAskAgain] = useState(() => {
+    return localStorage.getItem('eklavya_pdf_dont_ask') === 'true';
+  });
+  const [scrollProgress, setScrollProgress] = useState(0);
+  const [showWelcomeBack, setShowWelcomeBack] = useState(false);
+  
+  const scrollContainerRef = useRef(null);
   const { updateActivity } = useActivityTracker();
+  
+  const progressKey = `eklavya_reading_progress_${note?._id}`;
 
   useEffect(() => {
     if (note) {
@@ -98,18 +109,13 @@ export default function ProtectedViewer({ note, onClose }) {
     document.addEventListener('contextmenu', block);
     
     const blockKeys = (e) => {
-      // Block F12
-      if (e.key === 'F12') {
-        e.preventDefault();
-      }
+      if (e.key === 'F12') e.preventDefault();
       
-      // Block Ctrl+Shift+I/C/J (Windows/Linux) and Cmd+Option+I/C/J (Mac) - DevTools
       if ((e.ctrlKey && e.shiftKey && ['i', 'c', 'j'].includes(e.key.toLowerCase())) || 
           (e.metaKey && e.altKey && ['i', 'c', 'j'].includes(e.key.toLowerCase()))) {
         e.preventDefault();
       }
 
-      // Block Ctrl+S (Save), Ctrl+P (Print), Ctrl+U (View Source), Ctrl+C (Copy)
       const forbidden = (
         (e.ctrlKey || e.metaKey) &&
         ['s', 'p', 'u', 'c'].includes(e.key.toLowerCase())
@@ -124,12 +130,117 @@ export default function ProtectedViewer({ note, onClose }) {
     };
   }, []);
 
-  if (!note) return null;
+  // ── PREMIUM NAVIGATION & RESUME FEATURES ──
+  
+  const saveReadingProgress = useCallback(() => {
+    if (!scrollContainerRef.current) return;
+    const progress = {
+      scrollTop: scrollContainerRef.current.scrollTop,
+      scale,
+      updatedAt: new Date().toISOString()
+    };
+    localStorage.setItem(progressKey, JSON.stringify(progress));
+  }, [scale, progressKey]);
 
+  useEffect(() => {
+    // 1. Intercept Back Button
+    window.history.pushState({ modal: 'ProtectedViewer' }, '');
+
+    const handlePopState = (e) => {
+      e.preventDefault();
+      // Push it back again to stay on the page
+      window.history.pushState({ modal: 'ProtectedViewer' }, '');
+      
+      const skipConfirm = localStorage.getItem('eklavya_pdf_dont_ask') === 'true';
+      if (skipConfirm) {
+        confirmLeave();
+      } else {
+        setShowExitConfirm(true);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    
+    // 2. Intercept Tab Close / Refresh
+    const handleBeforeUnload = (e) => {
+      saveReadingProgress();
+      e.preventDefault();
+      e.returnValue = ''; 
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      
+      if (window.history.state?.modal === 'ProtectedViewer') {
+         window.history.back(); // clean up dummy state when unmounting normally
+      }
+    };
+  }, [saveReadingProgress]);
+
+  // Debounced scroll progress listener
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    
+    let timeoutId;
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      const scrolled = scrollTop / Math.max(1, (scrollHeight - clientHeight));
+      setScrollProgress(Math.min(100, Math.max(0, Math.round(scrolled * 100))));
+      
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => {
+        saveReadingProgress();
+      }, 800); // debounce save
+    };
+    
+    container.addEventListener('scroll', handleScroll);
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+      clearTimeout(timeoutId);
+    };
+  }, [saveReadingProgress, blobUrl, numPages]);
+
+  const handleCloseRequest = () => {
+    if (dontAskAgain) {
+      confirmLeave();
+    } else {
+      setShowExitConfirm(true);
+    }
+  };
+
+  const confirmLeave = () => {
+    saveReadingProgress();
+    onClose();
+  };
+
+  if (!note) return null;
   const isPdf = note.file_type === 'pdf';
 
   function onDocumentLoadSuccess({ numPages }) {
     setNumPages(numPages);
+    
+    // Restore reading progress
+    const saved = localStorage.getItem(progressKey);
+    if (saved && scrollContainerRef.current) {
+      try {
+        const { scrollTop, scale: savedScale } = JSON.parse(saved);
+        if (savedScale) setScale(savedScale);
+        
+        // Wait a tick for react-pdf to mount the pages, then smooth scroll
+        setTimeout(() => {
+          if (scrollContainerRef.current && scrollTop > 50) {
+             scrollContainerRef.current.scrollTo({ top: scrollTop, behavior: 'smooth' });
+             setShowWelcomeBack(true);
+             setTimeout(() => setShowWelcomeBack(false), 4500);
+          }
+        }, 600);
+      } catch (err) {
+        console.error("Failed to restore reading progress", err);
+      }
+    }
   }
 
   return (
@@ -143,6 +254,52 @@ export default function ProtectedViewer({ note, onClose }) {
         WebkitUserSelect: 'none',
       }}
     >
+      {/* ── Welcome Back Banner ── */}
+      {showWelcomeBack && (
+        <div className="welcome-banner">
+          <BookOpen size={16} /> Welcome back! Resumed {note.title}
+        </div>
+      )}
+
+      {/* ── Exit Confirmation Modal ── */}
+      {showExitConfirm && (
+        <div className="exit-modal-backdrop">
+          <div className="exit-modal">
+            <h3 style={{ margin: '0 0 1rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#fff', fontSize: '1.25rem' }}>
+              <AlertTriangle size={22} style={{ color: '#f59e0b' }} /> Leave Secure Viewer?
+            </h3>
+            
+            <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: '1.5rem', lineHeight: '1.5' }}>
+              You're currently reading:<br/>
+              <strong style={{ color: '#fff', fontSize: '1rem', display: 'block', margin: '0.5rem 0' }}>{note.title}</strong>
+              If you leave now, the Secure Viewer will close. Don't worry—your reading position and zoom level will be saved automatically.
+            </p>
+
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.85rem', color: '#94a3b8', marginBottom: '1.5rem' }}>
+              <input 
+                type="checkbox" 
+                checked={dontAskAgain}
+                onChange={(e) => {
+                  setDontAskAgain(e.target.checked);
+                  localStorage.setItem('eklavya_pdf_dont_ask', e.target.checked);
+                }}
+                style={{ accentColor: '#3b82f6' }}
+              />
+              Don't ask again on this device
+            </label>
+
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
+              <button onClick={confirmLeave} className="exit-btn-leave">
+                Leave Viewer
+              </button>
+              <button onClick={() => setShowExitConfirm(false)} className="exit-btn-stay">
+                Continue Reading
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Header ── */}
       <div className="pv-header">
         <div className="pv-title-area">
@@ -155,6 +312,11 @@ export default function ProtectedViewer({ note, onClose }) {
 
         {isPdf && numPages && (
           <div className="pv-controls-area">
+             {/* Reading Progress Indicator */}
+             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#94a3b8', fontSize: '0.85rem', paddingRight: '1rem', borderRight: '1px solid rgba(255,255,255,0.1)' }}>
+               <span>Reading Progress: <strong style={{ color: '#fff' }}>{scrollProgress}%</strong></span>
+             </div>
+             
              {/* Zoom Controls */}
              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                <button 
@@ -184,7 +346,7 @@ export default function ProtectedViewer({ note, onClose }) {
             <span className="pv-secure-text">Secure Viewer</span>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleCloseRequest}
             className="pv-close-btn"
           >
             <X size={20} />
@@ -194,6 +356,7 @@ export default function ProtectedViewer({ note, onClose }) {
 
       {/* ── Content ── */}
       <div 
+        ref={scrollContainerRef}
         style={{ 
           flex: 1, 
           overflow: 'auto',
@@ -220,10 +383,9 @@ export default function ProtectedViewer({ note, onClose }) {
                     <Page 
                       pageNumber={index + 1} 
                       scale={scale} 
-                      renderTextLayer={false} // Disable text selection for security
+                      renderTextLayer={false} 
                       renderAnnotationLayer={false}
                     />
-                    {/* Transparent overlay over each PDF page */}
                     <div style={{ position: 'absolute', inset: 0, zIndex: 10, cursor: 'default' }} />
                   </div>
                 ))}
@@ -237,14 +399,13 @@ export default function ProtectedViewer({ note, onClose }) {
                 draggable={false}
                 style={{
                   maxWidth: '100%',
-                  maxHeight: 'none', // Allow it to be its full height based on width
+                  maxHeight: 'none', 
                   objectFit: 'contain',
                   borderRadius: '8px',
                   boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
                   pointerEvents: 'none',
                 }}
               />
-              {/* Transparent full-size overlay */}
               <div
                 style={{
                   position: 'absolute', inset: 0,
@@ -257,7 +418,7 @@ export default function ProtectedViewer({ note, onClose }) {
         )}
       </div>
 
-      {/* ── Print blocker (injected CSS) ── */}
+      {/* ── Injected CSS ── */}
       <style>{`
         @media print {
           body { display: none !important; }
@@ -267,7 +428,93 @@ export default function ProtectedViewer({ note, onClose }) {
           height: auto !important;
         }
 
-        /* ── Header Responsive Styles ── */
+        /* Modal Styles */
+        .exit-modal-backdrop {
+          position: absolute;
+          inset: 0;
+          z-index: 10000;
+          background: rgba(0, 0, 0, 0.6);
+          backdrop-filter: blur(8px);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          animation: fadeIn 0.2s ease-out forwards;
+        }
+        
+        .exit-modal {
+          background: #1e293b;
+          border: 1px solid rgba(255,255,255,0.1);
+          border-radius: 20px;
+          padding: 2rem;
+          width: 90%;
+          max-width: 420px;
+          box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+          animation: scaleUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        
+        .exit-btn-stay {
+          background: #3b82f6;
+          color: white;
+          border: none;
+          padding: 0.75rem 1.25rem;
+          border-radius: 8px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: background 0.2s;
+        }
+        .exit-btn-stay:hover { background: #2563eb; }
+        
+        .exit-btn-leave {
+          background: transparent;
+          color: #f87171;
+          border: 1px solid rgba(248, 113, 113, 0.3);
+          padding: 0.75rem 1.25rem;
+          border-radius: 8px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+        .exit-btn-leave:hover { background: rgba(248, 113, 113, 0.1); }
+        
+        /* Banner Styles */
+        .welcome-banner {
+          position: absolute;
+          top: 80px;
+          left: 50%;
+          transform: translateX(-50%);
+          background: rgba(16, 185, 129, 0.15);
+          border: 1px solid rgba(16, 185, 129, 0.3);
+          color: #34d399;
+          padding: 0.75rem 1.5rem;
+          border-radius: 99px;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-weight: 500;
+          font-size: 0.9rem;
+          z-index: 1000;
+          box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);
+          animation: slideDown 0.4s ease-out forwards, fadeOut 0.5s ease-in 4s forwards;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes scaleUp {
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes slideDown {
+          from { opacity: 0; transform: translate(-50%, -20px); }
+          to { opacity: 1; transform: translate(-50%, 0); }
+        }
+        @keyframes fadeOut {
+          from { opacity: 1; transform: translate(-50%, 0); }
+          to { opacity: 0; transform: translate(-50%, -10px); }
+        }
+
+        /* Header Styles */
         .pv-header {
           display: flex;
           align-items: center;
@@ -308,12 +555,6 @@ export default function ProtectedViewer({ note, onClose }) {
           flex-shrink: 0;
         }
 
-        .pv-divider {
-          width: 1px;
-          height: 24px;
-          background: rgba(255,255,255,0.1);
-        }
-
         .pv-actions-area {
           display: flex;
           align-items: center;
@@ -348,7 +589,6 @@ export default function ProtectedViewer({ note, onClose }) {
           background: rgba(239, 68, 68, 0.2);
         }
 
-        /* ── Mobile specific adjustments ── */
         @media (max-width: 768px) {
           .pv-header {
             flex-direction: column;
@@ -362,13 +602,13 @@ export default function ProtectedViewer({ note, onClose }) {
             right: 1rem;
           }
           .pv-secure-text {
-            display: none; /* Hide text to save space, keep icon */
+            display: none; 
           }
           .pv-secure-badge {
             padding: 0.4rem;
           }
           .pv-title-area {
-            max-width: calc(100% - 80px); /* Leave space for close button */
+            max-width: calc(100% - 80px); 
           }
           .pv-controls-area {
             justify-content: space-between;
@@ -380,11 +620,6 @@ export default function ProtectedViewer({ note, onClose }) {
         @media (max-width: 480px) {
           .pv-controls-area {
             flex-direction: column;
-          }
-          .pv-divider {
-            width: 100%;
-            height: 1px;
-            margin: 0.2rem 0;
           }
         }
       `}</style>
