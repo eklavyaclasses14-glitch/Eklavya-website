@@ -187,15 +187,20 @@ export default function ProtectedViewer({ note, onClose }) {
 
   // ── PREMIUM NAVIGATION & RESUME FEATURES ──
   
+  const scaleRef = useRef(scale);
+  useEffect(() => {
+    scaleRef.current = scale;
+  }, [scale]);
+
   const saveReadingProgress = useCallback(() => {
     if (!scrollContainerRef.current) return;
     const progress = {
       scrollTop: scrollContainerRef.current.scrollTop,
-      scale,
+      scale: scaleRef.current,
       updatedAt: new Date().toISOString()
     };
     localStorage.setItem(progressKey, JSON.stringify(progress));
-  }, [scale, progressKey]);
+  }, [progressKey]);
 
   useEffect(() => {
     // 1. Intercept Back Button
@@ -232,7 +237,7 @@ export default function ProtectedViewer({ note, onClose }) {
          window.history.back(); // clean up dummy state when unmounting normally
       }
     };
-  }, [saveReadingProgress]);
+  }, []); // Run ONLY on mount/unmount
 
   // Debounced scroll progress listener
   useEffect(() => {
