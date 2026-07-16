@@ -14,6 +14,11 @@ const StudentSchema = new mongoose.Schema({
   resetPasswordExpire: { type: Date, select: false },
   sessionToken: { type: String, select: false },
   sessionExpiresAt: { type: Date, select: false },
+  enrollment_type: { 
+    type: String, 
+    enum: ['regular', 'ddcet_only', 'both'], 
+    default: 'regular' 
+  },
 }, { timestamps: true });
 
 // Hash password before saving

@@ -3,24 +3,20 @@ import StudentLayout from '../components/StudentLayout';
 import ProtectedViewer from '../components/ProtectedViewer';
 import { FileText, File, Image, BookOpen, Filter, Eye, Lock, Building2, GraduationCap, Search, X } from 'lucide-react';
 import { apiFetch } from '../utils/apiFetch';
+import { useDepartments } from '../hooks/useDepartments';
 import '../styles/StudentNotes.css';
 
-const FILTERS = [
+const BASE_FILTERS = [
   { label: 'All',    value: 'all'   },
   { label: 'PDFs',   value: 'pdf'   },
   { label: 'Images', value: 'image' },
   { label: 'Common Exams', value: 'exam' }
 ];
 
-const DEPARTMENTS = [
-  "Computer Engineering",
-  "Mechanical Engineering",
-  "Civil Engineering",
-  "Electrical Engineering",
-];
-const FILTER_DEPARTMENTS = ["All", ...DEPARTMENTS];
-
 export default function StudentNotes() {
+  const { departments: deptsData, getShortName } = useDepartments();
+  const FILTER_DEPARTMENTS = ["All", ...deptsData.map(d => d.name)];
+  
   const [notes, setNotes]       = useState([]);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState('');
@@ -34,6 +30,13 @@ export default function StudentNotes() {
   const user      = JSON.parse(localStorage.getItem('user') || '{}');
   const student   = user?.user || {};
   const studentId = student?._id || student?.id || user?.id || user?._id;
+
+  const FILTERS = [
+    ...BASE_FILTERS,
+    ...(student?.enrollment_type === 'both' || student?.enrollment_type === 'ddcet_only' 
+      ? [{ label: 'DDCET Only', value: 'ddcet' }] 
+      : [])
+  ];
 
   useEffect(() => {
     if (!studentId) { setLoading(false); return; }
@@ -123,6 +126,7 @@ export default function StudentNotes() {
           >
             {f.value === 'pdf'   && <File  size={13} />}
             {f.value === 'image' && <Image size={13} />}
+            {f.value === 'ddcet' && <BookOpen size={13} />}
             {f.label}
             {f.value !== 'all' && counts[f.value] !== undefined && (
               <span style={{ opacity: 0.7 }}>

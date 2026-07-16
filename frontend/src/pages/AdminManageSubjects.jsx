@@ -14,20 +14,8 @@ import {
 import { apiFetch } from "../utils/apiFetch";
 import "../styles/AdminManageSubjects.css";
 
-const DEPARTMENTS = [
-  'Automation & Robotics',
-  'Automobile Engineering',
-  'Civil Engineering',
-  'Electrical Engineering',
-  'Computer Engineering',
-  'Information Technology',
-  'Mechanical Engineering',
-  'Mechanical Engineering (CAD/CAM)',
-  'Information & Communication Technology',
-  'Metallurgy',
-  'Power Electronics',
-  'Architecture',
-];
+import { useDepartments } from "../hooks/useDepartments";
+
 const semesters = ["All", 1, 2, 3, 4, 5, 6];
 
 const DOT_CLASSES = [
@@ -37,21 +25,6 @@ const DOT_CLASSES = [
   "dot-amber",
   "dot-rose",
 ];
-
-const DEPT_SHORT = {
- "Computer Engineering": "CSE",
-  "Mechanical Engineering": "MECH",
-  "Civil Engineering": "CIVIL",
-  "Electrical Engineering": "EEE",
-  "Automation & Robotics": "AUTO  & ROBOT",
-  "Automobile Engineering": "AUTO",
-  "Information Technology": "IT",
-  "Mechanical Engineering (CAD/CAM)": "MECH( CAD/CAM )",
-  "Information & Communication Technology": "ICT",
-  "Metallurgy": "MET",
-  "Power Electronics": "PE",
-  "Architecture": "ARCH"
-};
 
 function Toast({ message, onClose }) {
   useEffect(() => {
@@ -227,6 +200,7 @@ function DeleteConfirmModal({ title, onClose, onConfirm }) {
 }
 
 export default function AdminManageSubjects() {
+  const { departments: deptsData, loading: deptsLoading, getShortName } = useDepartments();
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -240,6 +214,7 @@ export default function AdminManageSubjects() {
     subject_name: "",
     department: "Computer Engineering",
     semester: 1,
+    target_audience: "regular",
   });
 
   useEffect(() => {
@@ -253,7 +228,6 @@ export default function AdminManageSubjects() {
   }, []);
 
   // Derived data
-  const departments = ["All", ...DEPARTMENTS];
   const uniqueDepts = [...new Set(subjects.map((s) => s.department))];
   const totalSems = [...new Set(subjects.map((s) => s.semester))].length;
 
@@ -406,13 +380,13 @@ export default function AdminManageSubjects() {
 
           {/* Department filter tabs */}
           <div className="ams-dept-tabs">
-            {departments.map((dept) => (
+            {["All", ...deptsData.map(d => d.name)].map((dept) => (
               <button
                 key={dept}
                 className={`ams-dept-tab ${deptFilter === dept ? "active" : ""}`}
                 onClick={() => setDeptFilter(dept)}
               >
-                {dept === "All" ? "All Departments" : DEPT_SHORT[dept] || dept}
+                {dept === "All" ? "All Departments" : getShortName(dept)}
                 {dept !== "All" && (
                   <span style={{ opacity: 0.7, marginLeft: "0.25rem" }}>
                     ({subjects.filter((s) => s.department === dept).length})
@@ -463,7 +437,7 @@ export default function AdminManageSubjects() {
                     <span className="ams-subject-name">{sub.subject_name}</span>
                   </div>
                   <span className="ams-dept-badge">
-                    {DEPT_SHORT[sub.department] || sub.department}
+                    {getShortName(sub.department)}
                   </span>
                   <span className="ams-sem-badge">Sem {sub.semester}</span>
                   <button
@@ -527,9 +501,9 @@ export default function AdminManageSubjects() {
                 value={form.department}
                 onChange={handleFormChange}
               >
-                {DEPARTMENTS.map((d) => (
-                  <option key={d} value={d}>
-                    {d}
+                {deptsData.map((d) => (
+                  <option key={d.name} value={d.name}>
+                    {d.name}
                   </option>
                 ))}
               </select>
@@ -555,6 +529,23 @@ export default function AdminManageSubjects() {
                   </label>
                 ))}
               </div>
+            </div>
+
+            {/* Target Audience selector */}
+            <div className="ams-field">
+              <label className="ams-label">
+                <GraduationCap size={12} />
+                Target Audience <span className="ams-required">*</span>
+              </label>
+              <select
+                name="target_audience"
+                className="ams-input"
+                value={form.target_audience}
+                onChange={handleFormChange}
+              >
+                <option value="regular">Regular Curriculum</option>
+                <option value="ddcet">DDCET Preparation Only</option>
+              </select>
             </div>
 
             <button

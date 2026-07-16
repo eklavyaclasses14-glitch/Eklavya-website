@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, User, BookOpen, UploadCloud, LogOut, Menu, X, UserPlus, UserCheck, FileText, CalendarCheck, DollarSign, Activity } from 'lucide-react';
+import { LayoutDashboard, Users, User, BookOpen, UploadCloud, LogOut, Menu, X, UserPlus, UserCheck, FileText, CalendarCheck, DollarSign, Activity, Building2 } from 'lucide-react';
 import { apiFetch } from '../utils/apiFetch';
 import '../styles/AdminLayout.css';
 
@@ -58,6 +58,7 @@ export default function AdminLayout({ children }) {
     { label: 'Manage Documents', path: '/admin/notes',        icon: <FileText size={18} /> },
     { label: 'Upload Document',  path: '/admin/notes/upload', icon: <UploadCloud size={18} /> },
     { label: 'Manage Subjects',  path: '/admin/subjects',     icon: <BookOpen size={18} /> },
+    { label: 'Manage Departments', path: '/admin/departments', icon: <Building2 size={18} /> },
     { label: 'Attendance',       path: '/admin/attendance',   icon: <CalendarCheck size={18} /> },
     { label: 'Manage Fees',      path: '/admin/fees',         icon: <DollarSign size={18} /> },
     { label: 'Profile',          path: '/admin/profile',      icon: <User size={18} />   },

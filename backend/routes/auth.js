@@ -95,6 +95,7 @@ router.post('/login',
           semester: account.semester,
           student_contact: account.student_contact,
           parent_contact: account.parent_contact,
+          enrollment_type: account.enrollment_type,
         },
       });
     } catch (err) {
@@ -158,6 +159,7 @@ router.get('/me', protect, async (req, res) => {
       semester: account.semester,
       student_contact: account.student_contact,
       parent_contact: account.parent_contact,
+      enrollment_type: account.enrollment_type,
     });
   } catch (err) {
     console.error('[Auth] getMe error:', err);

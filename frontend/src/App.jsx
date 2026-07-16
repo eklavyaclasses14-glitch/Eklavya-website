@@ -11,6 +11,7 @@ const AdminDashboard      = lazy(() => import('./pages/AdminDashboard'));
 const AdminAddStudent     = lazy(() => import('./pages/AdminAddStudent'));
 const AdminUploadDocument  = lazy(() => import('./pages/AdminUploadDocument'));
 const AdminManageSubjects   = lazy(() => import('./pages/AdminManageSubjects'));
+const AdminManageDepartments= lazy(() => import('./pages/AdminManageDepartments'));
 const AdminManageStudents   = lazy(() => import('./pages/AdminManageStudents'));
 const AdminLiveTracking     = lazy(() => import('./pages/AdminLiveTracking'));
 const AdminManageDocuments  = lazy(() => import('./pages/AdminManageDocuments'));
@@ -103,6 +104,7 @@ function App() {
             <Route path="/admin/notes"         element={<AdminManageDocuments />} />
             <Route path="/admin/notes/upload"  element={<AdminUploadDocument />} />
             <Route path="/admin/subjects"       element={<AdminManageSubjects />} />
+            <Route path="/admin/departments"    element={<AdminManageDepartments />} />
             <Route path="/admin/attendance"    element={<AdminAttendance />} />
             <Route path="/admin/fees"          element={<AdminFees />} />
             <Route path="/admin/profile"       element={<AdminProfile />} />

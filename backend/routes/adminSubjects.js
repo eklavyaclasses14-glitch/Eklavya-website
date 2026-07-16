@@ -29,12 +29,13 @@ router.post('/',
       return res.status(400).json({ error: errors.array()[0].msg });
     }
 
-    const { subject_name, department, semester } = req.body;
+    const { subject_name, department, semester, target_audience } = req.body;
     try {
       const subject = await Subject.create({
         subject_name: subject_name.trim(),
         department: department.trim(),
-        semester: Number(semester)
+        semester: Number(semester),
+        target_audience: target_audience || 'regular'
       });
       res.status(201).json(subject);
     } catch (err) {

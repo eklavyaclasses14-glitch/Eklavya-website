@@ -3,22 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
 import { UserPlus, ArrowLeft, User, Hash, Lock, Building2, GraduationCap, CheckCircle2, Phone, Smartphone, AlertCircle } from 'lucide-react';
 import { apiFetch } from '../utils/apiFetch';
+import { useDepartments } from '../hooks/useDepartments';
 import '../styles/AdminForms.css';
-
-const DEPARTMENTS = [
-  'Automation & Robotics',
-  'Automobile Engineering',
-  'Civil Engineering',
-  'Electrical Engineering',
-  'Computer Engineering',
-  'Information Technology',
-  'Mechanical Engineering',
-  'Mechanical Engineering (CAD/CAM)',
-  'Information & Communication Technology',
-  'Metallurgy',
-  'Power Electronics',
-  'Architecture',
-];
 
 // ── Validation rules ──────────────────────────────
 const VALIDATORS = {
@@ -45,6 +31,7 @@ const VALIDATORS = {
 };
 
 export default function AdminAddStudent() {
+  const { departments: deptsData } = useDepartments();
   const navigate = useNavigate();
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState({});
@@ -58,6 +45,7 @@ export default function AdminAddStudent() {
     password: '',
     student_contact: '',
     parent_contact: '',
+    enrollment_type: 'regular',
   });
 
   const [submitting, setSubmitting] = useState(false);
@@ -324,7 +312,7 @@ export default function AdminAddStudent() {
                     Department <span className="admin-field-label-required">*</span>
                   </label>
                   <select name="department" className="admin-input" value={formData.department} onChange={handleChange} required>
-                    {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+                    {deptsData.map(d => <option key={d.name} value={d.name}>{d.name}</option>)}
                   </select>
                 </div>
 
@@ -335,6 +323,21 @@ export default function AdminAddStudent() {
                   </label>
                   <select name="semester" className="admin-input" value={formData.semester} onChange={handleChange} required>
                     {[1, 2, 3, 4, 5, 6].map(n => <option key={n} value={n}>Semester {n}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              {/* Enrollment Type */}
+              <div className="admin-field-row">
+                <div className="admin-field-group">
+                  <label className="admin-field-label">
+                    <GraduationCap size={13} />
+                    Enrollment Type <span className="admin-field-label-required">*</span>
+                  </label>
+                  <select name="enrollment_type" className="admin-input" value={formData.enrollment_type} onChange={handleChange} required>
+                    <option value="regular">Regular Curriculum</option>
+                    <option value="ddcet_only">DDCET Preparation Only</option>
+                    <option value="both">Both (Regular + DDCET)</option>
                   </select>
                 </div>
               </div>

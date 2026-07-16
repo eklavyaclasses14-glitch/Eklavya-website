@@ -22,6 +22,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { apiFetch } from "../utils/apiFetch";
+import { useDepartments } from "../hooks/useDepartments";
 import "../styles/AdminManageStudents.css";
 
 function PromoteConfirmModal({ studentName, currentSem, onClose, onConfirm, isBulk = false }) {
@@ -119,36 +120,7 @@ function DeleteConfirmModal({ title, onClose, onConfirm }) {
   );
 }
 
-const DEPARTMENTS = [
-  'Automation & Robotics',
-  'Automobile Engineering',
-  'Civil Engineering',
-  'Electrical Engineering',
-  'Computer Engineering',
-  'Information Technology',
-  'Mechanical Engineering',
-  'Mechanical Engineering (CAD/CAM)',
-  'Information & Communication Technology',
-  'Metallurgy',
-  'Power Electronics',
-  'Architecture',
-];
-const FILTER_DEPARTMENTS = ["All", ...DEPARTMENTS];
-
-const DEPT_SHORT = {
-  "Computer Engineering": "CSE",
-  "Mechanical Engineering": "MECH",
-  "Civil Engineering": "CIVIL",
-  "Electrical Engineering": "EEE",
-  "Automation & Robotics": "AUTO  & ROBOT",
-  "Automobile Engineering": "AUTO",
-  "Information Technology": "IT",
-  "Mechanical Engineering (CAD/CAM)": "MECH( CAD/CAM )",
-  "Information & Communication Technology": "ICT",
-  "Metallurgy": "MET",
-  "Power Electronics": "PE",
-  "Architecture": "ARCH"
-};
+// ── Validation ────────────────────────────────────────
 
 // ── Validation ────────────────────────────────────────
 const validate = (field, value) => {
@@ -193,6 +165,7 @@ function Toast({ message, type = "success", onClose }) {
 
 // ── Edit Modal ────────────────────────────────────────
 function EditModal({ student, onClose, onSave, setToast }) {
+  const { departments: deptsData } = useDepartments();
   const [form, setForm] = useState({
     name: student.name || "",
     user_id: student.user_id || "",
@@ -201,6 +174,7 @@ function EditModal({ student, onClose, onSave, setToast }) {
     student_contact: student.student_contact || "",
     parent_contact: student.parent_contact || "",
     password: "",
+    enrollment_type: student.enrollment_type || "regular",
   });
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
@@ -401,9 +375,9 @@ function EditModal({ student, onClose, onSave, setToast }) {
                     Select Department
                   </option>
 
-                  {FILTER_DEPARTMENTS.map((d) => (
-                    <option key={d} value={d}>
-                      {d}
+                  {deptsData.map((d) => (
+                    <option key={d.name} value={d.name}>
+                      {d.name}
                     </option>
                   ))}
                 </select>
@@ -424,6 +398,25 @@ function EditModal({ student, onClose, onSave, setToast }) {
                     </option>
                   ))}
                   <option value="">Select Semester</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Enrollment Type */}
+            <div className="ams-modal-row">
+              <div className="ams-modal-field">
+                <label className="ams-modal-label">
+                  <GraduationCap size={12} /> Enrollment Type *
+                </label>
+                <select
+                  name="enrollment_type"
+                  className="ams-modal-input"
+                  value={form.enrollment_type}
+                  onChange={handleChange}
+                >
+                  <option value="regular">Regular Curriculum</option>
+                  <option value="ddcet_only">DDCET Preparation Only</option>
+                  <option value="both">Both (Regular + DDCET)</option>
                 </select>
               </div>
             </div>
@@ -501,6 +494,7 @@ function EditModal({ student, onClose, onSave, setToast }) {
 
 // ── Main Page ─────────────────────────────────────────
 export default function AdminManageStudents() {
+  const { departments: deptsData, loading: deptsLoading, getShortName } = useDepartments();
   const navigate = useNavigate();
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -697,9 +691,9 @@ export default function AdminManageStudents() {
             onChange={(e) => setDeptFilter(e.target.value)}
           >
             <option value="">Select Department</option>
-            {DEPARTMENTS.map((d) => (
-              <option key={d} value={d}>
-                {DEPT_SHORT[d] || d}
+            {deptsData.map((d) => (
+              <option key={d.name} value={d.name}>
+                {getShortName(d.name)}
               </option>
             ))}
           </select>
@@ -789,7 +783,7 @@ export default function AdminManageStudents() {
 
               {/* Department */}
               <span className="ams-dept-tag">
-                {DEPT_SHORT[student.department] || student.department}
+                {getShortName(student.department)}
               </span>
 
               {/* Semester */}

@@ -84,7 +84,8 @@ router.post('/',
       semester,
       password,
       student_contact,
-      parent_contact
+      parent_contact,
+      enrollment_type
     } = req.body;
 
   try {
@@ -110,6 +111,7 @@ router.post('/',
       semester: Number(semester) || 1,
       student_contact: student_contact || '',
       parent_contact: parent_contact || '',
+      enrollment_type: enrollment_type || 'regular',
     });
 
     const { password: _, ...safe } = student.toObject();
@@ -123,7 +125,7 @@ router.post('/',
 
 // PUT /api/admin/students/:id
 router.put('/:id', async (req, res) => {
-  const { name, department, semester, student_contact, parent_contact, password } = req.body;
+  const { name, department, semester, student_contact, parent_contact, password, enrollment_type } = req.body;
   try {
     const student = await Student.findById(req.params.id);
     if (!student) return res.status(404).json({ error: 'Student not found' });
@@ -134,6 +136,7 @@ router.put('/:id', async (req, res) => {
     if (student_contact !== undefined) student.student_contact = student_contact;
     if (parent_contact !== undefined) student.parent_contact = parent_contact;
     if (password) student.password = password; // pre-save hook hashes it
+    if (enrollment_type) student.enrollment_type = enrollment_type;
 
     await student.save();
     

@@ -3,24 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import AdminLayout from '../components/AdminLayout';
 import { ArrowLeft, UploadCloud, File, Image, CheckCircle2, AlertCircle, X } from 'lucide-react';
 import { apiFetch } from '../utils/apiFetch';
+import { useDepartments } from '../hooks/useDepartments';
 import "../styles/AdminForms.css";
 import "../styles/AdminUploadDocument.css";
-const DEPARTMENTS = [
-  'Automation & Robotics',
-  'Automobile Engineering',
-  'Civil Engineering',
-  'Electrical Engineering',
-  'Computer Engineering',
-  'Information Technology',
-  'Mechanical Engineering',
-  'Mechanical Engineering (CAD/CAM)',
-  'Information & Communication Technology',
-  'Metallurgy',
-  'Power Electronics',
-  'Architecture',
-];
 
 export default function AdminUploadDocument() {
+  const { departments: deptsData } = useDepartments();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
@@ -214,7 +202,7 @@ export default function AdminUploadDocument() {
                   <div className="admin-field-group">
                     <label>Department *</label>
                     <select name="department" className="admin-input" value={formData.department} onChange={handleChange}>
-                      {DEPARTMENTS.map(d => <option key={d}>{d}</option>)}
+                      {deptsData.map(d => <option key={d.name}>{d.name}</option>)}
                     </select>
                   </div>
                   <div className="admin-field-group">
@@ -230,7 +218,9 @@ export default function AdminUploadDocument() {
                   <select name="subject_id" className="admin-input" value={formData.subject_id} onChange={handleChange} required>
                     <option value="">Select Subject</option>
                     {filteredSubjects.map(sub => (
-                      <option key={sub._id} value={sub._id}>{sub.subject_name}</option>
+                      <option key={sub._id} value={sub._id}>
+                        {sub.subject_name} {sub.target_audience === 'ddcet' ? '(DDCET)' : ''}
+                      </option>
                     ))}
                   </select>
                 </div>

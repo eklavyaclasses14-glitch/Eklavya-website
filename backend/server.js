@@ -62,6 +62,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/admin/staff', require('./routes/adminStaff'));
 app.use('/api/admin/students', require('./routes/adminStudents'));
 app.use('/api/admin/subjects', require('./routes/adminSubjects'));
+app.use('/api/admin/departments', require('./routes/adminDepartments'));
 app.use('/api/admin/notes', require('./routes/adminNotes'));
 app.use('/api/admin/attendance', require('./routes/adminAttendance'));
 app.use('/api/admin/fees', require('./routes/adminFees'));

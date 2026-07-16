@@ -27,20 +27,7 @@ const emptyBulk = {
   description: "",
 };
 
-const DEPARTMENTS = [
-  'Automation & Robotics',
-  'Automobile Engineering',
-  'Civil Engineering',
-  'Electrical Engineering',
-  'Computer Engineering',
-  'Information Technology',
-  'Mechanical Engineering',
-  'Mechanical Engineering (CAD/CAM)',
-  'Information & Communication Technology',
-  'Metallurgy',
-  'Power Electronics',
-  'Architecture',
-];
+import { useDepartments } from "../hooks/useDepartments";
 
 const badgeClass = (s) =>
   s === "Paid"
@@ -74,6 +61,7 @@ const jsonFetch = (url, options = {}) =>
 // ─── component ────────────────────────────────────────────────────────────────
 
 export default function AdminFees() {
+  const { departments: deptsData } = useDepartments();
   const [fees, setFees] = useState([]);
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -726,7 +714,7 @@ export default function AdminFees() {
                         <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>Target Department</label>
                         <select style={{ width: "100%", padding: "0.75rem 1rem", background: "#1e293b", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", color: "#f8fafc", fontSize: "0.95rem", outline: "none", appearance: "none" }} value={bulkForm.department} onChange={setBulkField("department")} required>
                           <option value="">— Select Department —</option>
-                          {DEPARTMENTS.map((dept) => <option key={dept} value={dept}>{dept}</option>)}
+                          {deptsData.map((dept) => <option key={dept.name} value={dept.name}>{dept.name}</option>)}
                         </select>
                       </div>
                       

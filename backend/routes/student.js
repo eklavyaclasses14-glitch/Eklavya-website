@@ -34,10 +34,15 @@ router.get('/:id/dashboard', enforceStudentOwnership, async (req, res) => {
     const student = await Student.findById(req.params.id).select('-password');
     if (!student) return res.status(404).json({ error: 'Student not found' });
 
-    const subjects = await Subject.find({
+    let subjectQuery = {
       department: student.department,
       semester: student.semester,
-    });
+    };
+    const stType = student.enrollment_type || 'regular';
+    if (stType === 'regular') subjectQuery.target_audience = 'regular';
+    else if (stType === 'ddcet_only') subjectQuery.target_audience = 'ddcet';
+
+    const subjects = await Subject.find(subjectQuery);
 
     const subjectIds = subjects.map(s => s._id);
 
@@ -169,11 +174,24 @@ router.get('/:id/notes', enforceStudentOwnership, async (req, res) => {
 
     if (file_type === 'exam') {
       query.is_common = true;
+    } else if (file_type === 'ddcet') {
+      const student = await Student.findById(req.params.id);
+      let subjectQuery = { department, semester: Number(semester), target_audience: 'ddcet' };
+      const subjects = await Subject.find(subjectQuery);
+      query.subject_id = { $in: subjects.map(s => s._id) };
+      query.is_common = { $ne: true };
     } else {
       if (department === 'All') {
         // Fetch all notes
       } else if (department && semester) {
-        const subjects = await Subject.find({ department, semester: Number(semester) });
+        const student = await Student.findById(req.params.id);
+        let subjectQuery = { department, semester: Number(semester) };
+        const stType = student?.enrollment_type || 'regular';
+        if (stType === 'regular') subjectQuery.target_audience = 'regular';
+        else if (stType === 'ddcet_only') subjectQuery.target_audience = 'ddcet';
+        else if (stType === 'both') subjectQuery.target_audience = 'regular';
+
+        const subjects = await Subject.find(subjectQuery);
         const subjectIds = subjects.map(s => s._id);
         query.subject_id = { $in: subjectIds };
         query.is_common = { $ne: true };
@@ -196,15 +214,29 @@ router.get('/:id/notes', enforceStudentOwnership, async (req, res) => {
     // Calculate counts for filters
     let counts = { all: 0, pdf: 0, image: 0, exam: 0 };
     if (department && department !== 'All' && semester) {
-      const subjectIds = (await Subject.find({ department, semester: Number(semester) })).map(s => s._id);
+      const student = await Student.findById(req.params.id);
+      let subjectQuery = { department, semester: Number(semester) };
+      const stType = student?.enrollment_type || 'regular';
+      if (stType === 'regular') subjectQuery.target_audience = 'regular';
+      else if (stType === 'ddcet_only') subjectQuery.target_audience = 'ddcet';
+      else if (stType === 'both') subjectQuery.target_audience = 'regular';
+
+      const subjectIds = (await Subject.find(subjectQuery)).map(s => s._id);
       const baseQuery = { subject_id: { $in: subjectIds }, is_common: { $ne: true } };
-      const [all, pdf, image, exam] = await Promise.all([
+      const [all, pdf, image, exam, ddcet] = await Promise.all([
         Note.countDocuments(baseQuery),
         Note.countDocuments({ ...baseQuery, file_type: 'pdf' }),
         Note.countDocuments({ ...baseQuery, file_type: 'image' }),
-        Note.countDocuments({ is_common: true })
+        Note.countDocuments({ is_common: true }),
+        (async () => {
+          if (stType === 'both' || stType === 'ddcet_only') {
+            const ddcetSubjects = await Subject.find({ department, semester: Number(semester), target_audience: 'ddcet' });
+            return Note.countDocuments({ subject_id: { $in: ddcetSubjects.map(s => s._id) }, is_common: { $ne: true } });
+          }
+          return 0;
+        })()
       ]);
-      counts = { all, pdf, image, exam };
+      counts = { all, pdf, image, exam, ddcet };
     }
 
     res.json({
@@ -239,6 +271,10 @@ router.post('/:id/notes/:noteId/request-view', enforceStudentOwnership, async (r
       if (note.subject_id.department !== student.department || note.subject_id.semester !== student.semester) {
          return res.status(403).json({ error: 'Unauthorized access to this document' });
       }
+      const stType = student.enrollment_type || 'regular';
+      const subAud = note.subject_id.target_audience || 'regular';
+      if (stType === 'regular' && subAud !== 'regular') return res.status(403).json({ error: 'Unauthorized access (DDCET material)' });
+      if (stType === 'ddcet_only' && subAud !== 'ddcet') return res.status(403).json({ error: 'Unauthorized access (Regular material)' });
     }
 
     const token = crypto.randomBytes(32).toString('hex');

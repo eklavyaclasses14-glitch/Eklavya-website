@@ -19,6 +19,7 @@ import {
   File,
 } from "lucide-react";
 import { apiFetch } from "../utils/apiFetch";
+import { useDepartments } from "../hooks/useDepartments";
 import "../styles/AdminManageDocuments.css";
 
 //  Validation
@@ -378,24 +379,12 @@ function DeleteConfirmModal({ title, onClose, onConfirm }) {
   );
 }
 
-const DEPARTMENTS = [
-  'Automation & Robotics',
-  'Automobile Engineering',
-  'Civil Engineering',
-  'Electrical Engineering',
-  'Computer Engineering',
-  'Information Technology',
-  'Mechanical Engineering',
-  'Mechanical Engineering (CAD/CAM)',
-  'Information & Communication Technology',
-  'Metallurgy',
-  'Power Electronics',
-  'Architecture',
-];
-const FILTER_DEPARTMENTS = ["All", "Common", ...DEPARTMENTS];
+// Note: Departments are loaded dynamically using the useDepartments hook.
 
 //  Main Page
 export default function AdminManageDocuments() {
+  const { departments: deptsData } = useDepartments();
+  const FILTER_DEPARTMENTS = ["All", "Common", ...deptsData.map(d => d.name)];
   const navigate = useNavigate();
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(false);
