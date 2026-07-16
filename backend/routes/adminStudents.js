@@ -152,8 +152,23 @@ router.delete('/:id', async (req, res) => {
   try {
     const student = await Student.findByIdAndDelete(req.params.id);
     if (!student) return res.status(404).json({ error: 'Student not found' });
+
+    // Cascade delete associated records
+    const Fee = require('../models/Fee');
+    const Attendance = require('../models/Attendance');
+    const ViewToken = require('../models/ViewToken');
+
+    await Promise.all([
+      Fee.deleteMany({ student_id: req.params.id }),
+      Attendance.deleteMany({ student_id: req.params.id }),
+      ActiveSession.deleteMany({ student_id: req.params.id }),
+      ViewToken.deleteMany({ student_id: req.params.id })
+    ]);
+
     res.json({ success: true });
-  } catch { res.status(500).json({ error: 'Server error' }); }
+  } catch (err) { 
+    res.status(500).json({ error: err.message }); 
+  }
 });
 
 // POST /api/admin/students/promote-bulk
