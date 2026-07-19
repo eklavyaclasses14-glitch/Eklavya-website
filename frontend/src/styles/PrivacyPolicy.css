@@ -1,0 +1,257 @@
+/* PRIVACY POLICY PAGE STYLING - EKLAVYA ACADEMY */
+.privacy-container {
+  min-height: 100vh;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  position: relative;
+  overflow: hidden;
+  padding: 7rem 2rem 5rem;
+}
+
+/* Background Ambient Glows & Grid Overlays */
+.privacy-container .ambient-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(140px);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.65;
+}
+
+.privacy-container .glow-1 {
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(74, 92, 106, 0.25) 0%, rgba(6, 20, 27, 0) 70%);
+  top: -150px;
+  left: 20%;
+}
+
+.privacy-container .glow-2 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, rgba(6, 20, 27, 0) 70%);
+  bottom: 10%;
+  right: 10%;
+}
+
+.privacy-container .grid-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Back Button */
+.back-btn-container {
+  max-width: 950px;
+  margin: 0 auto 1.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+.btn-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: var(--transition-normal);
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--radius-md);
+  background: rgba(17, 33, 45, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.btn-back:hover {
+  color: #fff;
+  background: rgba(74, 92, 106, 0.3);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateX(-4px);
+}
+
+.btn-back svg {
+  transition: transform 0.2s ease;
+}
+
+.btn-back:hover svg {
+  transform: translateX(-2px);
+}
+
+/* Glassmorphic Privacy Card */
+.privacy-card {
+  position: relative;
+  z-index: 2;
+  max-width: 950px;
+  margin: 0 auto;
+  background: rgba(17, 33, 45, 0.65);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg);
+  padding: 3.5rem 4rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+.privacy-header {
+  margin-bottom: 2.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 1.5rem;
+}
+
+.privacy-title {
+  font-size: 2.75rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  background: linear-gradient(135deg, #fff 40%, var(--color-primary-hover) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 0.75rem;
+}
+
+.privacy-updated {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.privacy-content p {
+  line-height: 1.8;
+  margin-bottom: 1.75rem;
+  color: var(--color-text);
+  font-size: 1.05rem;
+}
+
+.privacy-content p strong {
+  color: #fff;
+}
+
+.privacy-content h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #fff;
+  margin-top: 3rem;
+  margin-bottom: 1.25rem;
+  letter-spacing: -0.01em;
+  border-left: 3px solid var(--color-primary);
+  padding-left: 0.75rem;
+}
+
+.privacy-content ul {
+  list-style: none;
+  padding-left: 0.5rem;
+  margin-bottom: 2.25rem;
+}
+
+.privacy-content li {
+  position: relative;
+  padding-left: 1.75rem;
+  margin-bottom: 0.85rem;
+  line-height: 1.7;
+  color: var(--color-text);
+  font-size: 1.02rem;
+}
+
+.privacy-content li::before {
+  content: "✓";
+  color: var(--color-success);
+  font-weight: bold;
+  position: absolute;
+  left: 0;
+  top: 0.1rem;
+}
+
+/* Contact Box Details */
+.contact-box {
+  background: rgba(6, 20, 27, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-md);
+  padding: 2.5rem;
+  margin-top: 3.5rem;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.03);
+}
+
+.contact-box h3 {
+  color: #fff;
+  font-size: 1.35rem;
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.contact-address {
+  color: var(--color-text-muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-bottom: 2rem !important;
+}
+
+.contact-info-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.75rem 2rem;
+}
+
+.contact-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+}
+
+.contact-icon {
+  color: var(--color-primary-hover);
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.contact-text {
+  font-size: 0.98rem;
+  line-height: 1.5;
+}
+
+.contact-text strong {
+  color: #fff;
+  display: inline-block;
+  min-width: 90px;
+}
+
+/* Responsiveness */
+@media (max-width: 992px) {
+  .privacy-card {
+    padding: 3rem;
+  }
+  .privacy-title {
+    font-size: 2.25rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .privacy-container {
+    padding: 6rem 1rem 4rem;
+  }
+  .privacy-card {
+    padding: 2.25rem 1.5rem;
+  }
+  .privacy-title {
+    font-size: 1.85rem;
+  }
+  .privacy-content h2 {
+    font-size: 1.35rem;
+    margin-top: 2.25rem;
+  }
+  .contact-info-list {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+  .contact-box {
+    padding: 1.5rem;
+  }
+}

@@ -25,6 +25,8 @@ const AdminFees            = lazy(() => import('./pages/AdminFees'));
 const StudentFees          = lazy(() => import('./pages/StudentFees'));
 const StudentAttendance    = lazy(() => import('./pages/StudentAttendance'));
 const StudentProfile       = lazy(() => import('./pages/StudentProfile'));
+const PrivacyPolicy        = lazy(() => import('./pages/PrivacyPolicy'));
+
 
 function PageLoader() {
   return (
@@ -77,6 +79,7 @@ function App() {
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/"    element={<Landing />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/login" element={<Login />} />
 
           {/* Student Protected Routes */}

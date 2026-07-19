@@ -643,6 +643,10 @@ const Landing = () => {
               <button onClick={() => { navigate('/login'); }} className="footer-link-btn">Staff Terminals</button>
               <button onClick={() => { navigate('/login'); }} className="footer-link-btn">Admin Portal</button>
             </div>
+            <div className="footer-links-col">
+              <span className="col-title">Legal</span>
+              <button onClick={() => { navigate('/privacy-policy'); }} className="footer-link-btn">Privacy Policy</button>
+            </div>
           </div>
         </div>
 
