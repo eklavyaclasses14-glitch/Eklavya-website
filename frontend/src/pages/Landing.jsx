@@ -601,8 +601,8 @@ const Landing = () => {
                 </div>
                 <div className="scratch-info-group">
                   <h4><Phone size={18} /> Contact Numbers</h4>
-                  <p>+91 95861 68989</p>
-                  <p>+91 99249 71360</p>
+                  <p>+91 80008 64123</p>
+                  <p>+91 99040 84123</p>
                 </div>
               </div>
               <div className="scratch-card-cover">
