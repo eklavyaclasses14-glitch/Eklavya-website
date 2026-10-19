@@ -1,2 +1,2 @@
 # Eklavya
-it a Classes / Clollege management website
+it a Classes / College management website
